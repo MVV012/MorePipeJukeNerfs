@@ -29,11 +29,15 @@ sealed public class Plugin : BaseUnityPlugin
         Logger = base.Logger;
 
         On.RainWorld.OnModsInit += RainWorld_OnModsInit;
+
+        ShortcutCreatureTracking.ApplyHooks();
     }
 
     public void OnDisable()
     {
         On.RainWorld.OnModsInit -= RainWorld_OnModsInit;
+
+        ShortcutCreatureTracking.RemoveHooks();
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
