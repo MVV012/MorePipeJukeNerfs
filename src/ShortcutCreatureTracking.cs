@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 
 
 namespace NoMorePipeJuking;
@@ -14,6 +15,7 @@ internal class ShortcutCreatureTracking
         public AbstractCreature CreatureB { get; }
 
         public AbstractCreature? ExitedCreature { get; set; }
+        public bool GhostNeedsToBeUnpaused { get; set; }
 
         public ShortcutCreaturePair(AbstractCreature creatureA, AbstractCreature creatureB)
         {
@@ -25,6 +27,7 @@ internal class ShortcutCreatureTracking
             CreatureA = creatureA;
             CreatureB = creatureB;
             ExitedCreature = null;
+            GhostNeedsToBeUnpaused = false;
         }
 
         public AbstractCreature GetOtherCreature(AbstractCreature creature)
@@ -86,8 +89,8 @@ internal class ShortcutCreatureTracking
     {
         if (!s_creaturePairs.Any(pair => pair.Contains(creatureA) && pair.Contains(creatureB)))
         {
-            s_creaturePairs.Add(new ShortcutCreaturePair(creatureA, creatureB));
             Plugin.Logger.LogDebug($"Added pair: {creatureA}, {creatureB}");
+            s_creaturePairs.Add(new ShortcutCreaturePair(creatureA, creatureB));
         }
     }
 
@@ -96,7 +99,6 @@ internal class ShortcutCreatureTracking
         orig(self, vessel);
 
         AbstractCreature cur = vessel.creature.abstractCreature;
-        Tracker.CreatureRepresentation rep;
 
         // Iterating backwards to be able to remove elements
         for (int i = s_creaturePairs.Count - 1; i >= 0; i--)
@@ -111,34 +113,105 @@ internal class ShortcutCreatureTracking
             if (pair.ExitedCreature is null)
             {
                 // First creature exited
-                Plugin.Logger.LogDebug($"First exited: {cur} (other: {other})");
-
-                if (CreatureRepresentationUtils.TryGetRepresentation(cur, other, out rep))
-                {
-                    rep.MakeVisibleOnShortCutEnd();
-                    rep.MoveAwayFromShortcut();
-                }
-                if (CreatureRepresentationUtils.TryGetRepresentation(other, cur, out rep))
-                {
-                    rep.MakeImmediatelyVisible();
-                    rep.MoveAwayFromShortcut();
-                }
+                FirstExitedShortcut(cur, other, pair);
                 pair.ExitedCreature = cur;
             }
             else if (pair.ExitedCreature != cur)
             {
                 // Second creature exited
-                Plugin.Logger.LogDebug($"Second exited: {cur} (other: {other})");
-
-                if (CreatureRepresentationUtils.TryGetRepresentation(other, cur, out rep))
-                {
-                    if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
-                    {
-                        elabRep.UnpauseStoppedGhost();
-                    }
-                }
+                SecondExitedShortcut(cur, other, pair);
                 s_creaturePairs.RemoveAt(i);
             }
+        }
+    }
+
+    private static void FirstExitedShortcut(AbstractCreature cur, AbstractCreature other, ShortcutCreaturePair pair)
+    {
+        // TODO: move to plugin options
+        bool unawareCreaturesNoticeEachOther = true;
+        bool awareCreaturesNoticeEachOther = true;
+
+        Plugin.Logger.LogDebug($"First exited: {cur} (other: {other})");
+
+        Tracker.CreatureRepresentation? rep;
+
+        try
+        {
+            if (cur.TryGetRepresentation(other, out rep))
+            {
+                if (awareCreaturesNoticeEachOther)
+                {
+                    rep.UpdateStateAndRelationship();
+                    rep.MakeVisibleOnShortCutEnd();
+                    rep.MoveAwayFromShortcut();
+                    pair.GhostNeedsToBeUnpaused = true;
+                }
+            }
+            else
+            {
+                if (unawareCreaturesNoticeEachOther)
+                {
+                    cur.NoticeCreature(other);
+                    if (cur.TryGetRepresentation(other, out rep))
+                    {
+                        rep.MakeVisibleOnShortCutEnd();
+                        rep.MoveAwayFromShortcut();
+                        pair.GhostNeedsToBeUnpaused = true;
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Plugin.Logger.LogError($"Failed to make {cur} aware of {other} position");
+            Plugin.Logger.LogError($"Exception: {e}");
+        }
+
+
+        try {
+            if (other.TryGetRepresentation(cur, out rep))
+            {
+                if (awareCreaturesNoticeEachOther)
+                {
+                    rep.UpdateStateAndRelationship();
+                    rep.MakeImmediatelyVisible();
+                    rep.MoveAwayFromShortcut();
+                }
+            }
+            else
+            {
+                if (unawareCreaturesNoticeEachOther)
+                {
+                    other.NoticeCreature(cur);
+                    rep = other.GetRepresentation(cur);
+
+                    rep?.MakeImmediatelyVisible();
+                    rep?.MoveAwayFromShortcut();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Plugin.Logger.LogError($"Failed to make {other} aware of {cur} position");
+            Plugin.Logger.LogError($"Exception: {e}");
+        }
+    }
+
+    private static void SecondExitedShortcut(AbstractCreature cur, AbstractCreature other, ShortcutCreaturePair pair)
+    {
+        Plugin.Logger.LogDebug($"Second exited: {cur} (other: {other})");
+
+        try
+        {
+            if (pair.GhostNeedsToBeUnpaused && other.GetRepresentation(cur) is Tracker.ElaborateCreatureRepresentation elabRep)
+            {
+                elabRep.UnpauseStoppedGhost();
+            }
+        }
+        catch (Exception e)
+        {
+            Plugin.Logger.LogError($"Failed to unpause {other} ghost for {cur}");
+            Plugin.Logger.LogError($"Exception: {e}");
         }
     }
 }

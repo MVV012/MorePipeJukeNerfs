@@ -8,9 +8,14 @@ namespace NoMorePipeJuking;
 
 public static class CreatureRepresentationUtils
 {
-    public static bool TryGetRepresentation(AbstractCreature tracking, AbstractCreature tracked, out Tracker.CreatureRepresentation rep)
+    public static Tracker.CreatureRepresentation? GetRepresentation(this AbstractCreature tracking, AbstractCreature tracked)
     {
-        rep = tracking?.abstractAI?.RealAI?.tracker?.RepresentationForCreature(tracked, addIfMissing: false)!;
+        return tracking?.abstractAI?.RealAI?.tracker?.RepresentationForCreature(tracked, addIfMissing: false);
+    }
+
+    public static bool TryGetRepresentation(this AbstractCreature tracking, AbstractCreature tracked, out Tracker.CreatureRepresentation rep)
+    {
+        rep = GetRepresentation(tracking, tracked)!;
         return rep is not null;
     }
 
@@ -115,6 +120,13 @@ public static class CreatureRepresentationUtils
     public static void UnpauseStoppedGhost(this Tracker.ElaborateCreatureRepresentation rep)
     {
         Tracker.Ghost ghost = rep.ghosts[0];
+
+        if (!ghost.stopped)
+        {
+            Plugin.Logger.LogWarning("UnpauseStoppedGhost was called on not stopped ghost");
+            Plugin.Logger.LogWarning($"Creature: {rep.representedCreature}");
+            return;
+        }
 
         // Taken from Ghost.Reset
         ghost.vel = rep.representedCreature.realizedCreature.bodyChunks[0].vel;
