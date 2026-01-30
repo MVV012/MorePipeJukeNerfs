@@ -10,12 +10,12 @@ internal class ShortcutCreatureTracking
 {
     internal class ShortcutCreaturePair
     {
-        public Creature CreatureA { get; }
-        public Creature CreatureB { get; }
+        public AbstractCreature CreatureA { get; }
+        public AbstractCreature CreatureB { get; }
 
-        public Creature? ExitedCreature { get; set; }
+        public AbstractCreature? ExitedCreature { get; set; }
 
-        public ShortcutCreaturePair(Creature creatureA, Creature creatureB)
+        public ShortcutCreaturePair(AbstractCreature creatureA, AbstractCreature creatureB)
         {
             if (creatureA == creatureB)
             {
@@ -27,7 +27,7 @@ internal class ShortcutCreatureTracking
             ExitedCreature = null;
         }
 
-        public Creature GetOtherCreature(Creature creature)
+        public AbstractCreature GetOtherCreature(AbstractCreature creature)
         {
             if (CreatureA == creature)
             {
@@ -39,7 +39,7 @@ internal class ShortcutCreatureTracking
             }
         }
 
-        public bool Contains(Creature creature)
+        public bool Contains(AbstractCreature creature)
         {
             return CreatureA == creature || CreatureB == creature;
         }
@@ -65,6 +65,7 @@ internal class ShortcutCreatureTracking
     {
         orig(self);
 
+        // These loops and check were taken from Coder23848's mod Pipe Juke Nerf and modified
         for (int i = 0; i < self.transportVessels.Count; i++)
         {
             for (int j = i + 1; j < self.transportVessels.Count; j++)
@@ -72,17 +73,16 @@ internal class ShortcutCreatureTracking
                 ShortcutHandler.ShortCutVessel vesselA = self.transportVessels[i];
                 ShortcutHandler.ShortCutVessel vesselB = self.transportVessels[j];
 
-                // This check was taken from Coder23848's mod Pipe Juke Nerf
-                if (vesselA.room == vesselB.room && vesselA.pos.FloatDist(vesselB.pos) <= 1f)
+                if (vesselA.room == vesselB.room && (Math.Abs(vesselA.pos.x - vesselB.pos.x) + Math.Abs(vesselA.pos.y - vesselB.pos.y) <= 1))
                 {
                     // Creatures are next to each other in shortcut
-                    AddCreaturePair(vesselA.creature, vesselB.creature);
+                    AddCreaturePair(vesselA.creature.abstractCreature, vesselB.creature.abstractCreature);
                 }
             }
         }
     }
 
-    private static void AddCreaturePair(Creature creatureA, Creature creatureB)
+    private static void AddCreaturePair(AbstractCreature creatureA, AbstractCreature creatureB)
     {
         if (!s_creaturePairs.Any(pair => pair.Contains(creatureA) && pair.Contains(creatureB)))
         {
@@ -95,7 +95,7 @@ internal class ShortcutCreatureTracking
     {
         orig(self, vessel);
 
-        Creature cur = vessel.creature;
+        AbstractCreature cur = vessel.creature.abstractCreature;
         Tracker.CreatureRepresentation rep;
 
         // Iterating backwards to be able to remove elements
@@ -106,7 +106,7 @@ internal class ShortcutCreatureTracking
             {
                 continue;
             }
-            Creature other = pair.GetOtherCreature(cur);
+            AbstractCreature other = pair.GetOtherCreature(cur);
 
             if (pair.ExitedCreature is null)
             {

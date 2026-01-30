@@ -8,9 +8,9 @@ namespace NoMorePipeJuking;
 
 public static class CreatureRepresentationUtils
 {
-    public static bool TryGetRepresentation(Creature tracking, Creature tracked, out Tracker.CreatureRepresentation rep)
+    public static bool TryGetRepresentation(AbstractCreature tracking, AbstractCreature tracked, out Tracker.CreatureRepresentation rep)
     {
-        rep = tracking.abstractCreature?.abstractAI?.RealAI?.tracker?.RepresentationForCreature(tracked.abstractCreature, addIfMissing: false)!;
+        rep = tracking?.abstractAI?.RealAI?.tracker?.RepresentationForCreature(tracked, addIfMissing: false)!;
         return rep is not null;
     }
 
@@ -71,7 +71,7 @@ public static class CreatureRepresentationUtils
         }
         else
         {
-            rep.lastSeenCoord += rep.representedCreature.Room.realizedRoom.ShorcutEntranceHoleDirection(rep.lastSeenCoord.Tile);
+            rep.lastSeenCoord.Tile += rep.representedCreature.Room.realizedRoom.ShorcutEntranceHoleDirection(rep.lastSeenCoord.Tile);
         }
     }
 
