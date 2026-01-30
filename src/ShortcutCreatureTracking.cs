@@ -48,6 +48,9 @@ internal class ShortcutCreatureTracking
         }
     }
 
+    private static readonly CreatureTemplate.Type[] s_excludedCreatures = [CreatureTemplate.Type.Fly, CreatureTemplate.Type.Spider];
+
+
     // There will be not much pairs, so it's okay to store them this way
     private static List<ShortcutCreaturePair> s_creaturePairs = [];
 
@@ -87,7 +90,9 @@ internal class ShortcutCreatureTracking
 
     private static void AddCreaturePair(AbstractCreature creatureA, AbstractCreature creatureB)
     {
-        if (!s_creaturePairs.Any(pair => pair.Contains(creatureA) && pair.Contains(creatureB)))
+        if (!s_creaturePairs.Any(pair => pair.Contains(creatureA) && pair.Contains(creatureB))
+            && !s_excludedCreatures.Contains(creatureA.creatureTemplate.type) 
+            && !s_excludedCreatures.Contains(creatureB.creatureTemplate.type))
         {
             Plugin.Logger.LogDebug($"Added pair: {creatureA}, {creatureB}");
             s_creaturePairs.Add(new ShortcutCreaturePair(creatureA, creatureB));
