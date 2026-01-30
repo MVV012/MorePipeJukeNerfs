@@ -1,3 +1,4 @@
+using RWCustom;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,11 +8,10 @@ namespace NoMorePipeJuking;
 
 public static class CreatureRepresentationUtils
 {
-    public static IEnumerable<Tracker.CreatureRepresentation> GetAllRepresentations(AbstractCreature tracking, AbstractCreature tracked)
+    public static bool TryGetRepresentation(Creature tracking, Creature tracked, out Tracker.CreatureRepresentation rep)
     {
-        // TODO: add other trackers support
-        Tracker.CreatureRepresentation? rep = tracking?.abstractAI?.RealAI?.tracker.RepresentationForCreature(tracked, addIfMissing: false);
-        return rep is not null ? [rep] : [];
+        rep = tracking.abstractCreature?.abstractAI?.RealAI?.tracker?.RepresentationForCreature(tracked.abstractCreature, addIfMissing: false)!;
+        return rep is not null;
     }
 
     /// <summary>
@@ -27,6 +27,7 @@ public static class CreatureRepresentationUtils
         {
             rep.lastSeenCoord = rep.representedCreature.pos;
         }
+        rep.ticksSinceSeen = 0;
     }
 
     /// <summary>
@@ -50,6 +51,27 @@ public static class CreatureRepresentationUtils
         else
         {
             rep.lastSeenCoord = rep.representedCreature.pos;
+        }
+        rep.ticksSinceSeen = 0;
+    }
+
+    /// <summary>
+    /// Moves representation away from shortcut
+    /// Should be called only when representation is on shortcut 
+    /// </summary>
+    public static void MoveAwayFromShortcut(this Tracker.CreatureRepresentation rep)
+    {
+        if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
+        {
+            Tracker.Ghost ghost = elabRep.ghosts[0];
+
+            ghost.coord.Tile += elabRep.representedCreature.Room.realizedRoom.ShorcutEntranceHoleDirection(ghost.coord.Tile);
+            ghost.pos = elabRep.representedCreature.Room.realizedRoom.MiddleOfTile(ghost.coord);
+            // ghost.lastCoord is left at shortcut, so ghost doesn't move back
+        }
+        else
+        {
+            rep.lastSeenCoord += rep.representedCreature.Room.realizedRoom.ShorcutEntranceHoleDirection(rep.lastSeenCoord.Tile);
         }
     }
 
@@ -83,7 +105,6 @@ public static class CreatureRepresentationUtils
         // Ghost.pos is set to oldest position of mainBodyChunk, which is shortcut start, change it to shortcut end
         ghost.pos = rep.representedCreature.Room.realizedRoom.MiddleOfTile(ghost.coord);
 
-        ghost.vel = Vector2.zero; // TODO: set velocity to face out of shortcut?
         ghost.stopped = true;
     }
 
@@ -95,7 +116,14 @@ public static class CreatureRepresentationUtils
     {
         Tracker.Ghost ghost = rep.ghosts[0];
 
-        ghost.vel = rep.representedCreature.realizedCreature.mainBodyChunk.vel; // TODO: is it needed?
+        // Taken from Ghost.Reset
+        ghost.vel = rep.representedCreature.realizedCreature.bodyChunks[0].vel;
+        for (int i = 1; i < rep.representedCreature.realizedCreature.bodyChunks.Length; i++)
+        {
+            ghost.vel += rep.representedCreature.realizedCreature.bodyChunks[i].vel;
+        }
+        ghost.vel /= (float)rep.representedCreature.realizedCreature.bodyChunks.Length;
+
         ghost.stopped = false;
     }
 }

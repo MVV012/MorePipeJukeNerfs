@@ -13,7 +13,7 @@ internal class ShortcutCreatureTracking
         public Creature CreatureA { get; }
         public Creature CreatureB { get; }
 
-        public bool FirstCreatureExited { get; set; }
+        public Creature? ExitedCreature { get; set; }
 
         public ShortcutCreaturePair(Creature creatureA, Creature creatureB)
         {
@@ -24,7 +24,7 @@ internal class ShortcutCreatureTracking
 
             CreatureA = creatureA;
             CreatureB = creatureB;
-            FirstCreatureExited = false;
+            ExitedCreature = null;
         }
 
         public Creature GetOtherCreature(Creature creature)
@@ -38,6 +38,11 @@ internal class ShortcutCreatureTracking
                 return CreatureA;
             }
         }
+
+        public bool Contains(Creature creature)
+        {
+            return CreatureA == creature || CreatureB == creature;
+        }
     }
 
     // There will be not much pairs, so it's okay to store them this way
@@ -47,13 +52,13 @@ internal class ShortcutCreatureTracking
     public static void ApplyHooks()
     {
         On.ShortcutHandler.Update += ShortcutHandler_Update;
-        On.Creature.SpitOutOfShortCut += Creature_SpitOutOfShortCut;
+        On.ShortcutHandler.SpitOutCreature += ShortcutHandler_SpitOutCreature;
     }
 
     public static void RemoveHooks()
     {
         On.ShortcutHandler.Update -= ShortcutHandler_Update;
-        On.Creature.SpitOutOfShortCut -= Creature_SpitOutOfShortCut;
+        On.ShortcutHandler.SpitOutCreature -= ShortcutHandler_SpitOutCreature;
     }
 
     private static void ShortcutHandler_Update(On.ShortcutHandler.orig_Update orig, ShortcutHandler self)
@@ -79,68 +84,60 @@ internal class ShortcutCreatureTracking
 
     private static void AddCreaturePair(Creature creatureA, Creature creatureB)
     {
-        if (!s_creaturePairs.Any(pair =>
-        {
-            return pair.CreatureA == creatureA && pair.CreatureB == creatureB
-                   || pair.CreatureA == creatureB && pair.CreatureB == creatureA;
-        }))
+        if (!s_creaturePairs.Any(pair => pair.Contains(creatureA) && pair.Contains(creatureB)))
         {
             s_creaturePairs.Add(new ShortcutCreaturePair(creatureA, creatureB));
-            Plugin.Logger.LogDebug($"Added pair: {creatureA} {creatureB}");
+            Plugin.Logger.LogDebug($"Added pair: {creatureA}, {creatureB}");
         }
     }
 
-    private static void Creature_SpitOutOfShortCut(On.Creature.orig_SpitOutOfShortCut orig, Creature self, RWCustom.IntVector2 pos, Room newRoom, bool spitOutAllSticks)
+    private static void ShortcutHandler_SpitOutCreature(On.ShortcutHandler.orig_SpitOutCreature orig, ShortcutHandler self, ShortcutHandler.ShortCutVessel vessel)
     {
-        orig(self, pos, newRoom, spitOutAllSticks);
+        orig(self, vessel);
+
+        Creature cur = vessel.creature;
+        Tracker.CreatureRepresentation rep;
 
         // Iterating backwards to be able to remove elements
         for (int i = s_creaturePairs.Count - 1; i >= 0; i--)
         {
             var pair = s_creaturePairs[i];
-
-            if (pair.CreatureA == self || pair.CreatureB == self)
+            if (!pair.Contains(cur))
             {
-                Creature other = pair.GetOtherCreature(self);
-                if (!pair.FirstCreatureExited)
+                continue;
+            }
+            Creature other = pair.GetOtherCreature(cur);
+
+            if (pair.ExitedCreature is null)
+            {
+                // First creature exited
+                Plugin.Logger.LogDebug($"First exited: {cur} (other: {other})");
+
+                if (CreatureRepresentationUtils.TryGetRepresentation(cur, other, out rep))
                 {
-                    // First creature exited
-                    Plugin.Logger.LogDebug($"First exited: {self} (other: {other})");
-
-                    foreach (var rep in CreatureRepresentationUtils.GetAllRepresentations(self.abstractCreature, other.abstractCreature))
-                    {
-                        rep.MakeVisibleOnShortCutEnd();
-                    }
-                    foreach (var rep in CreatureRepresentationUtils.GetAllRepresentations(other.abstractCreature, self.abstractCreature))
-                    {
-                        rep.MakeImmediatelyVisible();
-                        Plugin.Logger.LogDebug($"Ghost speed immediate: {(rep as Tracker.ElaborateCreatureRepresentation).ghosts[0].vel}");
-
-                    }
-                    pair.FirstCreatureExited = true; // TODO: Fix. This is bugged if first creature exits from other shortcut quickly
+                    rep.MakeVisibleOnShortCutEnd();
+                    rep.MoveAwayFromShortcut();
                 }
-                else
+                if (CreatureRepresentationUtils.TryGetRepresentation(other, cur, out rep))
                 {
-                    // Second creature exited
-                    Plugin.Logger.LogDebug($"Second exited: {self} (other: {other})");
-
-                    /* foreach (var rep in CreatureRepresentationUtils.GetAllRepresentations(self.abstractCreature, other.abstractCreature))
-                    {
-                        // TODO: should ghost be pushed for time wasted in shortcut???
-                    } */
-                    foreach (var rep in CreatureRepresentationUtils.GetAllRepresentations(other.abstractCreature, self.abstractCreature))
-                    {
-                        if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
-                        {
-                            elabRep.UnpauseStoppedGhost();
-                            Plugin.Logger.LogDebug($"Ghost speed unpaused: {(rep as Tracker.ElaborateCreatureRepresentation).ghosts[0].vel}");
-
-                            Plugin.Logger.LogDebug($"Unpaused ghost");
-
-                        }
-                    }
-                    s_creaturePairs.RemoveAt(i);
+                    rep.MakeImmediatelyVisible();
+                    rep.MoveAwayFromShortcut();
                 }
+                pair.ExitedCreature = cur;
+            }
+            else if (pair.ExitedCreature != cur)
+            {
+                // Second creature exited
+                Plugin.Logger.LogDebug($"Second exited: {cur} (other: {other})");
+
+                if (CreatureRepresentationUtils.TryGetRepresentation(other, cur, out rep))
+                {
+                    if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
+                    {
+                        elabRep.UnpauseStoppedGhost();
+                    }
+                }
+                s_creaturePairs.RemoveAt(i);
             }
         }
     }
