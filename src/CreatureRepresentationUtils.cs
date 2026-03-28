@@ -40,8 +40,8 @@ public static class CreatureRepresentationUtils
     {
         if (!rep.representedCreature.realizedCreature.inShortcut)
         {
-            Plugin.Logger.LogWarning("MakeVisibleOnShortCutEnd was called for creature not in shortcut");
-            Plugin.Logger.LogWarning($"Creature: {rep.representedCreature}");
+            Log.LogWarning("MakeVisibleOnShortCutEnd was called for creature not in shortcut");
+            Log.LogWarning($"Creature: {rep.representedCreature}");
             return;
         }
 
@@ -119,8 +119,8 @@ public static class CreatureRepresentationUtils
 
         if (!ghost.stopped)
         {
-            Plugin.Logger.LogWarning("UnpauseStoppedGhost was called on not stopped ghost");
-            Plugin.Logger.LogWarning($"Creature: {rep.representedCreature}");
+            Log.LogWarning("UnpauseStoppedGhost was called on not stopped ghost");
+            Log.LogWarning($"Creature: {rep.representedCreature}");
             return;
         }
 

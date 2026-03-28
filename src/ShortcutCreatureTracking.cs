@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace MorePipeJukeNerfs;
 
-internal class ShortcutCreatureTracking
+internal static class ShortcutCreatureTracking
 {
     internal class ShortcutCreaturePair
     {
@@ -91,7 +91,7 @@ internal class ShortcutCreatureTracking
             && !s_excludedCreatures.Contains(creatureA.creatureTemplate.type) 
             && !s_excludedCreatures.Contains(creatureB.creatureTemplate.type))
         {
-            Plugin.Logger.LogDebug($"Added pair: {creatureA}, {creatureB}");
+            DebugLogInfo($"Added pair: {creatureA}, {creatureB}");
             s_creaturePairs.Add(new ShortcutCreaturePair(creatureA, creatureB));
         }
     }
@@ -101,6 +101,8 @@ internal class ShortcutCreatureTracking
         orig(self, vessel);
 
         AbstractCreature cur = vessel.creature.abstractCreature;
+
+        DebugLogInfo($"SpitOut: {cur}, pos: {cur.pos}, mainBodyChunk.pos: {cur?.realizedCreature?.mainBodyChunk.pos}");
 
         // Iterating backwards to be able to remove elements
         for (int i = s_creaturePairs.Count - 1; i >= 0; i--)
@@ -133,7 +135,7 @@ internal class ShortcutCreatureTracking
         bool unawareCreaturesNoticeEachOther = true;
         bool awareCreaturesNoticeEachOther = true;
 
-        Plugin.Logger.LogDebug($"First exited: {cur} (other: {other})");
+        DebugLogInfo($"First exited: {cur} (other: {other})");
 
         Tracker.CreatureRepresentation? rep;
 
@@ -147,6 +149,8 @@ internal class ShortcutCreatureTracking
                     rep.MakeVisibleOnShortCutEnd();
                     rep.MoveAwayFromShortcut();
                     pair.GhostNeedsToBeUnpaused = true;
+
+                    DebugLogInfo($"Stopped: {(rep as Tracker.ElaborateCreatureRepresentation).ghosts[0].stopped}");
                 }
             }
             else
@@ -165,8 +169,8 @@ internal class ShortcutCreatureTracking
         }
         catch (Exception e)
         {
-            Plugin.Logger.LogError($"Failed to make {cur} aware of {other} position");
-            Plugin.Logger.LogError($"Exception: {e}");
+            Log.LogError($"Failed to make {cur} aware of {other} position");
+            Log.LogError($"Exception: {e}");
         }
 
 
@@ -194,14 +198,14 @@ internal class ShortcutCreatureTracking
         }
         catch (Exception e)
         {
-            Plugin.Logger.LogError($"Failed to make {other} aware of {cur} position");
-            Plugin.Logger.LogError($"Exception: {e}");
+            Log.LogError($"Failed to make {other} aware of {cur} position");
+            Log.LogError($"Exception: {e}");
         }
     }
 
     private static void SecondExitedShortcut(AbstractCreature cur, AbstractCreature other, ShortcutCreaturePair pair)
     {
-        Plugin.Logger.LogDebug($"Second exited: {cur} (other: {other})");
+        DebugLogInfo($"Second exited: {cur} (other: {other})");
 
         try
         {
@@ -212,8 +216,8 @@ internal class ShortcutCreatureTracking
         }
         catch (Exception e)
         {
-            Plugin.Logger.LogError($"Failed to unpause {other} ghost for {cur}");
-            Plugin.Logger.LogError($"Exception: {e}");
+            Log.LogError($"Failed to unpause {other} ghost for {cur}");
+            Log.LogError($"Exception: {e}");
         }
     }
 }

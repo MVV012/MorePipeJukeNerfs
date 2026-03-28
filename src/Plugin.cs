@@ -1,3 +1,5 @@
+global using static MorePipeJukeNerfs.LogWrapper;
+
 using BepInEx;
 using BepInEx.Logging;
 using System.Diagnostics;
@@ -10,6 +12,23 @@ using System.Security.Permissions;
 
 namespace MorePipeJukeNerfs;
 
+internal static class LogWrapper
+{
+    public static ManualLogSource Log = null!;
+
+    [Conditional("DEBUG")]
+    public static void DebugLog(LogLevel level, object data)
+    {
+        Log.Log(level, data);
+    }
+
+    [Conditional("DEBUG")]
+    public static void DebugLogInfo(object data)
+    {
+        Log.LogInfo(data);
+    }
+}
+
 [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
 sealed public class Plugin : BaseUnityPlugin
 {
@@ -19,17 +38,17 @@ sealed public class Plugin : BaseUnityPlugin
 
     private bool _isInit = false;
 
-    public static new ManualLogSource Logger = null!;
-
-
     public void OnEnable()
     {
-        Logger = base.Logger;
+        Log = base.Logger;
+        DebugLogInfo("OnEnable");
 
         On.RainWorld.OnModsInit += RainWorld_OnModsInit;
 
         ShortcutCreatureTracking.ApplyHooks();
         NoticeCreatureUtils.ApplyHooks();
+
+        Debug.ApplyHooks();
     }
 
     public void OnDisable()
@@ -38,6 +57,8 @@ sealed public class Plugin : BaseUnityPlugin
 
         ShortcutCreatureTracking.RemoveHooks();
         NoticeCreatureUtils.RemoveHooks();
+
+        Debug.RemoveHooks();
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)

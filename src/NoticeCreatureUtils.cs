@@ -46,12 +46,12 @@ internal static class NoticeCreatureUtils
             rep?.dynamicRelationship?.Update();
             s_overrideVisualContact = false;
 
-            Plugin.Logger.LogDebug($"New Rel: {rep?.representedCreature}, {rep?.dynamicRelationship?.currentRelationship}");
+            DebugLogInfo($"New Rel: {rep?.representedCreature}, {rep?.dynamicRelationship?.currentRelationship}");
         }
         catch (Exception e)
         {
-            Plugin.Logger.LogError($"Failed to update relationship of {rep.parent.AI.creature} towards {rep.representedCreature}");
-            Plugin.Logger.LogError($"Exception: {e}");
+            Log.LogError($"Failed to update relationship of {rep.parent.AI.creature} towards {rep.representedCreature}");
+            Log.LogError($"Exception: {e}");
         }
     }
 
@@ -69,8 +69,8 @@ internal static class NoticeCreatureUtils
         }
         catch (Exception e)
         {
-            Plugin.Logger.LogError($"Failed to make {tracking} notice {tracked}");
-            Plugin.Logger.LogError($"Exception: {e}");
+            Log.LogError($"Failed to make {tracking} notice {tracked}");
+            Log.LogError($"Exception: {e}");
         }
     }
 }
