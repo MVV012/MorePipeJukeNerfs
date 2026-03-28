@@ -1,9 +1,7 @@
 using MonoMod.RuntimeDetour;
 using System;
 
-
-namespace NoMorePipeJuking;
-
+namespace MorePipeJukeNerfs;
 
 internal static class NoticeCreatureUtils
 {

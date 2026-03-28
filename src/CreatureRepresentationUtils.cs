@@ -1,10 +1,6 @@
-using RWCustom;
 using System;
-using System.Collections.Generic;
-using UnityEngine;
 
-namespace NoMorePipeJuking;
-
+namespace MorePipeJukeNerfs;
 
 public static class CreatureRepresentationUtils
 {
