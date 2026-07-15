@@ -3,7 +3,7 @@ namespace MorePipeJukeNerfs.Shortcuts;
 public class ShortcutFromRealized : IShortcut
 {
     private AbstractRoom _startRoom;
-    private AbstractRoom _destRoom;
+    private AbstractRoom? _destRoom;
     private WorldCoordinate _startCoord;
     private WorldCoordinate? _destCoord;
 
@@ -24,13 +24,19 @@ public class ShortcutFromRealized : IShortcut
     public ShortcutData.Type Type => ShortcutData.Type.RoomExit;
 
     public AbstractRoom StartRoom => _startRoom;
-    public AbstractRoom DestRoom => _destRoom;
+    public AbstractRoom DestRoom => _destRoom ?? _startRoom; // idk
     public WorldCoordinate StartCoord => _startCoord;
     public WorldCoordinate DestCoord
     {
         get
         {
             if (_destCoord.HasValue) return _destCoord.Value;
+
+            if (_destRoom == null)
+            {
+                _destCoord = new WorldCoordinate(_startRoom.index, -1, -1, -1);
+                return _destCoord.Value;
+            }
 
             // This code is copied from Tracker.Ghost.Update
             WorldCoordinate dest = new WorldCoordinate(_destRoom.index, -1, -1, _destRoom.ExitIndex(_startRoom.index));

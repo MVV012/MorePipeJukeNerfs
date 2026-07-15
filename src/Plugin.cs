@@ -50,8 +50,6 @@ sealed public class Plugin : BaseUnityPlugin
         ShortcutPairTracking.ApplyHooks();
         NoticeCreatureUtils.ApplyHooks();
         PipeJukeNotifier.ApplyHooks();
-
-        Debug.ApplyHooks();
     }
 
     public void OnDisable()
@@ -62,8 +60,6 @@ sealed public class Plugin : BaseUnityPlugin
         ShortcutPairTracking.RemoveHooks();
         NoticeCreatureUtils.RemoveHooks();
         PipeJukeNotifier.RemoveHooks();
-
-        Debug.RemoveHooks();
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
