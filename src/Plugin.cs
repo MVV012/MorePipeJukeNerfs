@@ -35,7 +35,7 @@ sealed public class Plugin : BaseUnityPlugin
 {
     public const string PLUGIN_GUID = "mvv012.morepipejukenerfs";
     public const string PLUGIN_NAME = "More Pipe Juke Nerfs";
-    public const string PLUGIN_VERSION = "0.2.0";
+    public const string PLUGIN_VERSION = "0.3.0";
 
     private bool _isInit = false;
 
@@ -51,7 +51,7 @@ sealed public class Plugin : BaseUnityPlugin
         NoticeCreatureUtils.ApplyHooks();
         PipeJukeNotifier.ApplyHooks();
         PlayerShortcutTrackerCWT.ApplyHooks();
-        CantBeGrabbedReduction.ApplyHooks();
+        NewRoomInvincibilityReduction.ApplyHooks();
     }
 
     public void OnDisable()
@@ -63,7 +63,7 @@ sealed public class Plugin : BaseUnityPlugin
         NoticeCreatureUtils.RemoveHooks();
         PipeJukeNotifier.RemoveHooks();
         PlayerShortcutTrackerCWT.RemoveHooks();
-        CantBeGrabbedReduction.RemoveHooks();
+        NewRoomInvincibilityReduction.RemoveHooks();
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)

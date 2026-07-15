@@ -1,9 +1,9 @@
 {
 	"id": "mvv012.morepipejukenerfs",
 	"name": "More Pipe Juke Nerfs",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"authors": "MVV012",
-	"description": "TODO",
+	"description": "Makes creatures aware of each other position and state when they meet in shortcut.<LINE>Reduces amount of invincibility player gets after shortcut each time they go through same one",
 	"requirements": [],
 	"requirements_names": [],
 	"priorities": [],

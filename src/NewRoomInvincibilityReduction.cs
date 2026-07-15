@@ -2,7 +2,7 @@ using MorePipeJukeNerfs.Shortcuts;
 
 namespace MorePipeJukeNerfs;
 
-internal static class CantBeGrabbedReduction
+internal static class NewRoomInvincibilityReduction
 {
     public static void ApplyHooks()
     {
@@ -21,14 +21,16 @@ internal static class CantBeGrabbedReduction
         if (vessel.creature is Player player && vessel.TryGetShortcut(out IShortcut shortcut))
         {
             player.ShortcutTracker.ExitedShortcut(shortcut);
-            player.cantBeGrabbedCounter = CalculateCantBeGrabbed(player.ShortcutTracker.RepeatingShortcutCount);
+            int value = CalculateNewRoomInvincibility(player.ShortcutTracker.RepeatingShortcutCount);
+            player.newToRoomInvinsibility = Math.Min(value, 40);
+            player.cantBeGrabbedCounter = Math.Min(value, 30);
         }
     }
 
-    private static int CalculateCantBeGrabbed(int repeatingShortcutCount)
+    private static int CalculateNewRoomInvincibility(int repeatingShortcutCount)
     {
         // TODO: move to plugin options
-        int startingValue = 30;
+        int startingValue = 40;
         int reduction = 10;
 
         return Math.Max(startingValue - (repeatingShortcutCount - 1) * reduction, 0);
