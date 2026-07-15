@@ -1,9 +1,8 @@
 using MonoMod.RuntimeDetour;
-using System;
 
 namespace MorePipeJukeNerfs;
 
-internal static class NoticeCreatureUtils
+public static class NoticeCreatureUtils
 {
     private static bool s_overrideVisualContact = false;
 
@@ -43,27 +42,33 @@ internal static class NoticeCreatureUtils
         {
             // It's okay if game is single-threaded (Not okay otherwise)
             s_overrideVisualContact = true;
-            rep?.dynamicRelationship?.Update();
-            s_overrideVisualContact = false;
+            rep.dynamicRelationship?.Update();
 
-            DebugLogInfo($"New Rel: {rep?.representedCreature}, {rep?.dynamicRelationship?.currentRelationship}");
+            if (rep.dynamicRelationship != null)
+            {
+                DebugLogInfo($"New Relationship of {rep.parent.AI.creature} towards {rep.representedCreature}: {rep.dynamicRelationship?.currentRelationship}");
+            }
         }
         catch (Exception e)
         {
             Log.LogError($"Failed to update relationship of {rep.parent.AI.creature} towards {rep.representedCreature}");
             Log.LogError($"Exception: {e}");
         }
+        finally
+        {
+            s_overrideVisualContact = false;
+        }
     }
 
     /// <summary>
     /// Makes creature notice another creature.
-    /// Should not be called, if creature is already tracked.
+    /// Should not be called if creature is already tracked.
     /// </summary>
     public static void NoticeCreature(this AbstractCreature tracking, AbstractCreature tracked)
     {
         try
         {
-            var rep = tracking?.abstractAI?.RealAI?.tracker?.CreatureNoticed(tracked);
+            var rep = tracking.abstractAI?.RealAI?.tracker?.CreatureNoticed(tracked);
             rep?.visualContact = false;
             rep?.UpdateStateAndRelationship();
         }

@@ -2,6 +2,7 @@ global using static MorePipeJukeNerfs.LogWrapper;
 
 using BepInEx;
 using BepInEx.Logging;
+using MorePipeJukeNerfs.Shortcuts;
 using System.Diagnostics;
 using System.Security.Permissions;
 
@@ -34,7 +35,7 @@ sealed public class Plugin : BaseUnityPlugin
 {
     public const string PLUGIN_GUID = "mvv012.morepipejukenerfs";
     public const string PLUGIN_NAME = "More Pipe Juke Nerfs";
-    public const string PLUGIN_VERSION = "0.1.0";
+    public const string PLUGIN_VERSION = "0.2.0";
 
     private bool _isInit = false;
 
@@ -45,8 +46,10 @@ sealed public class Plugin : BaseUnityPlugin
 
         On.RainWorld.OnModsInit += RainWorld_OnModsInit;
 
-        ShortcutCreatureTracking.ApplyHooks();
+        VesselShortcutCWT.ApplyHooks();
+        ShortcutPairTracking.ApplyHooks();
         NoticeCreatureUtils.ApplyHooks();
+        PipeJukeNotifier.ApplyHooks();
 
         Debug.ApplyHooks();
     }
@@ -55,8 +58,10 @@ sealed public class Plugin : BaseUnityPlugin
     {
         On.RainWorld.OnModsInit -= RainWorld_OnModsInit;
 
-        ShortcutCreatureTracking.RemoveHooks();
+        VesselShortcutCWT.RemoveHooks();
+        ShortcutPairTracking.RemoveHooks();
         NoticeCreatureUtils.RemoveHooks();
+        PipeJukeNotifier.RemoveHooks();
 
         Debug.RemoveHooks();
     }

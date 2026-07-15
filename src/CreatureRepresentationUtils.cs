@@ -1,137 +1,103 @@
-using System;
+using RWCustom;
+using UnityEngine;
 
 namespace MorePipeJukeNerfs;
 
 public static class CreatureRepresentationUtils
 {
-    public static Tracker.CreatureRepresentation? GetRepresentation(this AbstractCreature tracking, AbstractCreature tracked)
+    extension(AbstractCreature tracking)
     {
-        return tracking?.abstractAI?.RealAI?.tracker?.RepresentationForCreature(tracked, addIfMissing: false);
-    }
-
-    public static bool TryGetRepresentation(this AbstractCreature tracking, AbstractCreature tracked, out Tracker.CreatureRepresentation rep)
-    {
-        rep = GetRepresentation(tracking, tracked)!;
-        return rep is not null;
-    }
-
-    /// <summary>
-    /// Makes represented creature visible immediately without making it visible after that
-    /// </summary>
-    public static void MakeImmediatelyVisible(this Tracker.CreatureRepresentation rep)
-    {
-        if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
+        public Tracker.CreatureRepresentation? GetRepresentation(AbstractCreature tracked)
         {
-            ResetGhosts(elabRep);
-        }
-        else
-        {
-            rep.lastSeenCoord = rep.representedCreature.pos;
-        }
-        rep.ticksSinceSeen = 0;
-    }
-
-    /// <summary>
-    /// Makes represented creature visible on shortcut's end.
-    /// Should be called only when creature is in shortcut.
-    /// UnpauseStoppedGhost should be called later for ElaborateCreatureRepresentation.
-    /// </summary>
-    public static void MakeVisibleOnShortCutEnd(this Tracker.CreatureRepresentation rep)
-    {
-        if (!rep.representedCreature.realizedCreature.inShortcut)
-        {
-            Log.LogWarning("MakeVisibleOnShortCutEnd was called for creature not in shortcut");
-            Log.LogWarning($"Creature: {rep.representedCreature}");
-            return;
+            return tracking.abstractAI?.RealAI?.tracker?.RepresentationForCreature(tracked, addIfMissing: false);
         }
 
-        if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
+        public bool TryGetRepresentation(AbstractCreature tracked, out Tracker.CreatureRepresentation rep)
         {
-            PlaceStoppedGhostOnShortCutEnd(elabRep);
-        }
-        else
-        {
-            rep.lastSeenCoord = rep.representedCreature.pos;
-        }
-        rep.ticksSinceSeen = 0;
-    }
-
-    /// <summary>
-    /// Moves representation away from shortcut
-    /// Should be called only when representation is on shortcut 
-    /// </summary>
-    public static void MoveAwayFromShortcut(this Tracker.CreatureRepresentation rep)
-    {
-        if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
-        {
-            Tracker.Ghost ghost = elabRep.ghosts[0];
-
-            ghost.coord.Tile += elabRep.representedCreature.Room.realizedRoom.ShorcutEntranceHoleDirection(ghost.coord.Tile);
-            ghost.pos = elabRep.representedCreature.Room.realizedRoom.MiddleOfTile(ghost.coord);
-            // ghost.lastCoord is left at shortcut, so ghost doesn't move back
-        }
-        else
-        {
-            rep.lastSeenCoord.Tile += rep.representedCreature.Room.realizedRoom.ShorcutEntranceHoleDirection(rep.lastSeenCoord.Tile);
+            rep = tracking.GetRepresentation(tracked)!;
+            return rep is not null;
         }
     }
 
-    /// <summary>
-    /// Resets representation's ghost position to current creature position
-    /// </summary>
-    public static void ResetGhosts(this Tracker.ElaborateCreatureRepresentation rep)
+
+    extension(Tracker.CreatureRepresentation rep)
     {
-        // This piece of code is copied from Tracker.ElaborateCreatureRepresentation.Update
-        if (rep.ghosts.Count > 1)
+        /// <summary>
+        /// Moves representation to a tile in front of shortcut's entrance
+        /// </summary>
+        /// <param name="room">Abstract room of shortcut entrance</param>
+        /// <param name="coord">World coordinate of shortcut entrance</param>
+        /// <param name="stop">Should ghost be stopped</param>
+        public void MoveToShortcutEntrance(AbstractRoom room, WorldCoordinate coord, bool stop = false)
         {
-            rep.ghosts.RemoveRange(1, rep.ghosts.Count - 1);
-            rep.bestGhost = rep.ghosts[0];
-            rep.bestGhostDirty = false;
+            if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
+            {
+                if (elabRep.ghosts.Count > 1)
+                {
+                    elabRep.ghosts.RemoveRange(1, elabRep.ghosts.Count - 1);
+                    elabRep.bestGhost = elabRep.ghosts[0];
+                    elabRep.bestGhostDirty = false;
+                }
+                Tracker.Ghost ghost = elabRep.ghosts[0];
+                ghost.generation = 0;
+                ghost.stopped = stop;
+                ghost.lastCoord = coord;
+                if (room.realizedRoom != null)
+                {
+                    IntVector2 entraceHoleDirection = room.realizedRoom.ShorcutEntranceHoleDirection(coord.Tile);
+                    ghost.coord = coord + entraceHoleDirection;
+                    ghost.vel = entraceHoleDirection.ToVector2() * 2f;
+                }
+                else
+                {
+                    ghost.coord = coord;
+                    ghost.vel = Vector2.zero;
+                }
+                // Copied from Room.MiddleOfTile (why there is no static variant?)
+                ghost.pos = new Vector2(10f + (float)ghost.coord.x * 20f, 10f + (float)ghost.coord.y * 20f);
+
+                rep.lastSeenCoord = ghost.coord;
+            }
+            else
+            {
+                if (room.realizedRoom != null)
+                {
+                    rep.lastSeenCoord = coord + room.realizedRoom.ShorcutEntranceHoleDirection(coord.Tile);
+                }
+                else
+                {
+                    rep.lastSeenCoord = coord;
+                }
+            }
+            rep.ticksSinceSeen = 0;
+
+            if (room.realizedRoom == null)
+            {
+                DebugLogInfo($"MoveToShortcutEntrance {coord}: Room {room.name} is NOT realized");
+            }
+            else if (!room.realizedRoom.shortCutsReady)
+            {
+                DebugLogInfo($"MoveToShortcutEntrance {coord}: Room {room.name} shortcuts are NOT ready");
+            }
         }
-        rep.ghosts[0].Reset();
-        rep.lastSeenCoord = rep.ghosts[0].coord;
-    }
 
-    /// <summary>
-    /// Sets representation's ghost position to shortcut end and stops it.
-    /// Should be called only when creature is in shortcut.
-    /// </summary>
-    public static void PlaceStoppedGhostOnShortCutEnd(this Tracker.ElaborateCreatureRepresentation rep)
-    {
-        // This sets Ghost.coord to AbstractCreature.pos which is set to shortcut end by Creature.SuckedIntoShortCut
-        ResetGhosts(rep);
-
-        Tracker.Ghost ghost = rep.ghosts[0];
-
-        // Ghost.pos is set to oldest position of mainBodyChunk, which is shortcut start, change it to shortcut end
-        ghost.pos = rep.representedCreature.Room.realizedRoom.MiddleOfTile(ghost.coord);
-
-        ghost.stopped = true;
-    }
-
-    /// <summary>
-    /// Unpauses first stopped ghost.
-    /// Should be used after PlaceStoppedGhostOnShortCutEnd.
-    /// </summary>
-    public static void UnpauseStoppedGhost(this Tracker.ElaborateCreatureRepresentation rep)
-    {
-        Tracker.Ghost ghost = rep.ghosts[0];
-
-        if (!ghost.stopped)
+        /// <summary>
+        /// Unpauses stopped ghost
+        /// Should be called after using MoveToShortcutEntrance
+        /// </summary>
+        public void UnpauseStoppedGhost()
         {
-            Log.LogWarning("UnpauseStoppedGhost was called on not stopped ghost");
-            Log.LogWarning($"Creature: {rep.representedCreature}");
-            return;
-        }
+            if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
+            {
+                if (elabRep.ghosts.Count > 1)
+                {
+                    Log.LogWarning($"UnpauseStoppedGhost: {elabRep.parent.AI.creature}'s representation of " +
+                        $"{elabRep.representedCreature} has {elabRep.ghosts.Count} ghosts");
+                    return;
+                }
 
-        // Taken from Ghost.Reset
-        ghost.vel = rep.representedCreature.realizedCreature.bodyChunks[0].vel;
-        for (int i = 1; i < rep.representedCreature.realizedCreature.bodyChunks.Length; i++)
-        {
-            ghost.vel += rep.representedCreature.realizedCreature.bodyChunks[i].vel;
+                elabRep.ghosts[0].stopped = false;
+            }
         }
-        ghost.vel /= (float)rep.representedCreature.realizedCreature.bodyChunks.Length;
-
-        ghost.stopped = false;
     }
 }

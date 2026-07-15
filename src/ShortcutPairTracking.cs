@@ -7,10 +7,10 @@ public static class ShortcutPairTracking
 {
     private static ConditionalWeakTable<ShortcutHandler.ShortCutVessel, List<AbstractCreature>> s_metCreatures = new();
 
-    public delegate void PairCreatureExitedShortcutHandler(AbstractCreature cur, AbstractCreature other, IShortcut shortcut);
+    public delegate void PairCreatureExitedHandler(AbstractCreature cur, AbstractCreature other, IShortcut shortcut);
 
-    public static event PairCreatureExitedShortcutHandler? FirstCreatureExited;
-    public static event PairCreatureExitedShortcutHandler? SecondCreatureExited;
+    public static event PairCreatureExitedHandler? FirstCreatureExited;
+    public static event PairCreatureExitedHandler? SecondCreatureExited;
 
     public static void ApplyHooks()
     {
