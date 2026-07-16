@@ -51,7 +51,7 @@ sealed public class Plugin : BaseUnityPlugin
         NoticeCreatureUtils.ApplyHooks();
         PipeJukeNotifier.ApplyHooks();
         PlayerShortcutTrackerCWT.ApplyHooks();
-        NewRoomInvincibilityReduction.ApplyHooks();
+        ShortcutCounterReducer.ApplyHooks();
     }
 
     public void OnDisable()
@@ -63,7 +63,7 @@ sealed public class Plugin : BaseUnityPlugin
         NoticeCreatureUtils.RemoveHooks();
         PipeJukeNotifier.RemoveHooks();
         PlayerShortcutTrackerCWT.RemoveHooks();
-        NewRoomInvincibilityReduction.RemoveHooks();
+        ShortcutCounterReducer.RemoveHooks();
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
