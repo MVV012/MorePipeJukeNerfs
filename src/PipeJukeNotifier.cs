@@ -45,6 +45,11 @@ internal class PipeJukeNotifier
         bool unawareCreaturesNotice = true;
         bool awareCreaturesNotice = true;
 
+        if (other.realizedCreature is Player { IsHidden: true, VisibilityBonus: <= -1f })
+        {
+            return;
+        }
+
         Tracker.CreatureRepresentation? rep;
         if (cur.TryGetRepresentation(other, out rep))
         {

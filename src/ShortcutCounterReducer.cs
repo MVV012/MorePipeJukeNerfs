@@ -53,7 +53,7 @@ internal static class ShortcutCounterReducer
         int startingValue = 20;
         int increaseFrom = 5;
         int increase = 10;
-        int limit = 80;
+        int limit = 60;
 
         if (repeatingShortcutCount < increaseFrom)
         {

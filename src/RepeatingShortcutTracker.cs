@@ -25,9 +25,15 @@ public class RepeatingShortcutTracker
     public void ExitedShortcut(IShortcut shortcut)
     {
         // TODO: move to plugin options
+        int fastChangeTicks = 60;
         int resetTicks = 15 * 40;
 
-        if (_ticksSinceShortcut < resetTicks && _lastShortcut != null && shortcut.IsSameShortcut(_lastShortcut))
+        if (_ticksSinceShortcut < fastChangeTicks)
+        {
+            _lastShortcut = shortcut;
+            _repeatingShortcutCount++;
+        }
+        else if (_ticksSinceShortcut < resetTicks && _lastShortcut != null && shortcut.IsSameShortcut(_lastShortcut))
         {
             _repeatingShortcutCount++;
         }
