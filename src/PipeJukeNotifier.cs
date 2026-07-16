@@ -1,3 +1,5 @@
+using MorePipeJukeNerfs.Shortcuts;
+
 namespace MorePipeJukeNerfs;
 
 internal class PipeJukeNotifier
@@ -16,74 +18,39 @@ internal class PipeJukeNotifier
 
     private static void FirstCreatureExited(AbstractCreature cur, AbstractCreature other, Shortcuts.IShortcut shortcut)
     {
-        // TODO: move to plugin options
-        bool unawareCreaturesNotice = true;
-        bool awareCreaturesNotice = true;
-
         DebugLogInfo($"First exited: {cur} (other: {other})");
 
-        Tracker.CreatureRepresentation? rep;
-        if (cur.TryGetRepresentation(other, out rep))
-        {
-            if (awareCreaturesNotice)
-            {
-                rep.MoveToShortcutEntrance(shortcut.StartRoom, shortcut.StartCoord, stop: true);
-                rep.UpdateStateAndRelationship();
-            }
-        }
-        else
-        {
-            if (unawareCreaturesNotice)
-            {
-                cur.NoticeCreature(other);
-                if (cur.TryGetRepresentation(other, out rep))
-                {
-                    rep.MoveToShortcutEntrance(shortcut.StartRoom, shortcut.StartCoord, stop: true);
-                }
-            }
-        }
+        OnPipeJuke(cur, other, shortcut.StartRoom, shortcut.StartCoord, stop: true);
 
         // Updating state here is more accurate, but causes exceptions for some creatures (curently found: EggBug, BigNeedleWorm)
-        if (other.TryGetRepresentation(cur, out rep))
-        {
-            if (awareCreaturesNotice)
-            {
-                rep.MoveToShortcutEntrance(shortcut.DestRoom, shortcut.DestCoord);
-                rep.UpdateStateAndRelationship();
-            }
-        }
-        else
-        {
-            if (unawareCreaturesNotice)
-            {
-                other.NoticeCreature(cur);
-                if (other.TryGetRepresentation(cur, out rep))
-                {
-                    rep.MoveToShortcutEntrance(shortcut.DestRoom, shortcut.DestCoord);
-                }
-            }
-        }
+        OnPipeJuke(other, cur, shortcut.DestRoom, shortcut.DestCoord, stop: false);
     }
 
     private static void SecondCreatureExited(AbstractCreature cur, AbstractCreature other, Shortcuts.IShortcut shortcut)
     {
         DebugLogInfo($"Second exited: {cur} (other: {other})");
 
-        Tracker.CreatureRepresentation? rep;
-        if (other.TryGetRepresentation(cur, out rep))
+        if (other.TryGetRepresentation(cur, out var rep))
         {
             rep.UnpauseStoppedGhost();
         }
 
         // Updating state here is less accurate, but causes less exceptions
-        /*
+        //OnPipeJuke(cur, other, shortcut.StartRoom, shortcut.StartCoord, stop: false);
+    }
+
+    private static void OnPipeJuke(AbstractCreature cur, AbstractCreature other, AbstractRoom otherRoom, WorldCoordinate otherCoord, bool stop = false)
+    {
+        // TODO: move to plugin options
         bool unawareCreaturesNotice = true;
         bool awareCreaturesNotice = true;
+
+        Tracker.CreatureRepresentation? rep;
         if (cur.TryGetRepresentation(other, out rep))
         {
             if (awareCreaturesNotice)
             {
-                rep.MoveToShortcutEntrance(shortcut.StartRoom, shortcut.StartCoord);
+                rep.MoveToShortcutEntrance(otherRoom, otherCoord, stop);
                 rep.UpdateStateAndRelationship();
             }
         }
@@ -94,10 +61,9 @@ internal class PipeJukeNotifier
                 cur.NoticeCreature(other);
                 if (cur.TryGetRepresentation(other, out rep))
                 {
-                    rep.MoveToShortcutEntrance(shortcut.StartRoom, shortcut.StartCoord);
+                    rep.MoveToShortcutEntrance(otherRoom, otherCoord, stop);
                 }
             }
         }
-        */
     }
 }

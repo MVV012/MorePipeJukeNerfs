@@ -40,14 +40,21 @@ public static class NoticeCreatureUtils
     {
         try
         {
+#if DEBUG
+            CreatureTemplate.Relationship? oldRel = rep.dynamicRelationship?.currentRelationship;
+#endif
+
             // It's okay if game is single-threaded (Not okay otherwise)
             s_overrideVisualContact = true;
             rep.dynamicRelationship?.Update();
 
-            if (rep.dynamicRelationship != null)
+#if DEBUG
+            CreatureTemplate.Relationship? newRel = rep.dynamicRelationship?.currentRelationship;
+            if (newRel != null && !newRel.Equals(oldRel))
             {
-                DebugLogInfo($"New Relationship of {rep.parent.AI.creature} towards {rep.representedCreature}: {rep.dynamicRelationship?.currentRelationship}");
+                DebugLogInfo($"New relationship of {rep.parent.AI.creature} to {rep.representedCreature}: {(oldRel == null ? "None" : oldRel)} -> {rep.dynamicRelationship?.currentRelationship}");
             }
+#endif
         }
         catch (Exception e)
         {

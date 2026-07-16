@@ -87,15 +87,8 @@ public static class CreatureRepresentationUtils
         /// </summary>
         public void UnpauseStoppedGhost()
         {
-            if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
+            if (rep is Tracker.ElaborateCreatureRepresentation elabRep && elabRep.ghosts.Count == 1)
             {
-                if (elabRep.ghosts.Count > 1)
-                {
-                    Log.LogWarning($"UnpauseStoppedGhost: {elabRep.parent.AI.creature}'s representation of " +
-                        $"{elabRep.representedCreature} has {elabRep.ghosts.Count} ghosts");
-                    return;
-                }
-
                 elabRep.ghosts[0].stopped = false;
             }
         }
