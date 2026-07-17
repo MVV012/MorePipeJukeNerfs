@@ -32,7 +32,7 @@ public static class ShortcutPairTracking
             {
                 if (otherVessel.TryGetShortcut(out IShortcut otherShortcut) && curShortcut.IsOppositeDirection(otherShortcut))
                 {
-                    DebugLogInfo($"{vessel.creature} and {otherVessel.creature} met in shortcut");
+                    Log.LogInfo($"{vessel.creature} and {otherVessel.creature} met in shortcut");
 
                     FirstCreatureExited?.Invoke(vessel.creature.abstractCreature, otherVessel.creature.abstractCreature, curShortcut);
 

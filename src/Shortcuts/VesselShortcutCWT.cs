@@ -36,7 +36,18 @@ public static class VesselShortcutCWT
             return;
         }
 
+        if (self.transportVessels.Count == 0)
+        {
+            Log.LogWarning("ShortcutHandler_SuckInCreature: transportVessels is empty for some reason");
+            return;
+        }
         ShortcutHandler.ShortCutVessel vessel = self.transportVessels[^1];
+        if (vessel.creature != creature)
+        {
+            Log.LogWarning("ShortcutHandler_SuckInCreature: " +
+                "Last ShortcutVessel in transportVessels has different creature for some reason");
+            return;
+        }
 
         if (shortCut.shortCutType == ShortcutData.Type.Normal)
         {
@@ -57,8 +68,21 @@ public static class VesselShortcutCWT
             return;
         }
 
+        if (self.betweenRoomsWaitingLobby.Count == 0)
+        {
+            Log.LogWarning("ShortcutHandler_CreatureEnterFromAbstractRoom: " +
+                "betweenRoomsWaitingLobby is empty for some reason");
+            return;
+        }
         if (self.betweenRoomsWaitingLobby[^1] is ShortcutHandler.ShortCutVessel vessel)
         {
+            if (vessel.creature != creature)
+            {
+                Log.LogWarning("ShortcutHandler_CreatureEnterFromAbstractRoom: " +
+                    "Last ShortcutVessel in betweenRoomsWaitingLobby has different creature for some reason");
+                return;
+            }
+
             ShortcutData shortcutData = enterRoom.realizedRoom.ShortcutLeadingToNode(enterNode);
 
             if (shortcutData.shortCutType == ShortcutData.Type.RoomExit)
