@@ -26,6 +26,11 @@ public static class ShortcutPairTracking
     {
         orig(self, vessel);
 
+        if (!Options.ShortcutNoticeCreatures.Value)
+        {
+            return;
+        }
+
         if (vessel.TryGetShortcut(out IShortcut curShortcut))
         {
             foreach (ShortcutHandler.ShortCutVessel otherVessel in GetAllShortCutVessels(self))

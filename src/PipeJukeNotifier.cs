@@ -41,10 +41,10 @@ internal class PipeJukeNotifier
 
     private static void OnPipeJuke(AbstractCreature cur, AbstractCreature other, AbstractRoom otherRoom, WorldCoordinate otherCoord, bool stop = false)
     {
-        // TODO: move to plugin options
-        bool unawareCreaturesNotice = true;
-        bool awareCreaturesNotice = true;
-
+        if (Options.ShortcutNoticeOnlyPlayer.Value && other.realizedCreature is not Player { isNPC: false })
+        {
+            return;
+        }
         if (other.realizedCreature is Player { IsHidden: true, VisibilityBonus: <= -1f })
         {
             return;
@@ -53,7 +53,7 @@ internal class PipeJukeNotifier
         Tracker.CreatureRepresentation? rep;
         if (cur.TryGetRepresentation(other, out rep))
         {
-            if (awareCreaturesNotice)
+            if (Options.ShortcutNoticeSeen.Value)
             {
                 rep.MoveToShortcutEntrance(otherRoom, otherCoord, stop);
                 rep.UpdateStateAndRelationship();
@@ -61,7 +61,7 @@ internal class PipeJukeNotifier
         }
         else
         {
-            if (unawareCreaturesNotice)
+            if (Options.ShortcutNoticeUnseen.Value)
             {
                 cur.NoticeCreature(other);
                 if (cur.TryGetRepresentation(other, out rep))

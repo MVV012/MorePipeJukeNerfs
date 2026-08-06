@@ -1,5 +1,6 @@
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
+using static MorePipeJukeNerfs.Options;
 
 namespace MorePipeJukeNerfs;
 
@@ -19,49 +20,52 @@ internal static class ShortcutCounterReducer
     {
         orig(self, vessel);
 
-        if (vessel.creature is Player player && vessel.TryGetShortcut(out IShortcut shortcut))
+        if (vessel.creature is Player { isNPC: false } player && vessel.TryGetShortcut(out IShortcut shortcut))
         {
             player.ShortcutTracker.ExitedShortcut(shortcut);
 
-            int invincibility = GetNewRoomInvincibility(player.ShortcutTracker.RepeatingShortcutCount);
-            player.newToRoomInvinsibility = invincibility;
-            player.cantBeGrabbedCounter = Custom.IntClamp(invincibility, 0, 30);
-            player.shortcutDelay = GetShortcutDelay(player.ShortcutTracker.RepeatingShortcutCount);
+            if (ReduceInvincibility.Value)
+            {
+                int invincibility = GetNewRoomInvincibility(player.ShortcutTracker.RepeatingShortcutCount);
+                player.newToRoomInvinsibility = invincibility;
+                player.cantBeGrabbedCounter = Custom.IntClamp(invincibility, 0, 30);
+            }
+            if (IncreaseShortcutDelay.Value)
+            {
+                player.shortcutDelay = GetShortcutDelay(player.ShortcutTracker.RepeatingShortcutCount);
+            }
         }
     }
 
     private static int GetNewRoomInvincibility(int repeatingShortcutCount)
     {
-        // TODO: move to plugin options
-        int startingValue = 40;
-        int decreaseFrom = 3;
-        int reduction = 10;
-
-        if (repeatingShortcutCount < decreaseFrom)
+        if (repeatingShortcutCount < InvincibilityShortcutUses.Value)
         {
-            return startingValue;
+            return InvincibilityStarting.Value;
         }
         else
         {
-            return Custom.IntClamp(startingValue - (repeatingShortcutCount - decreaseFrom + 1) * reduction, 0, startingValue);
+            return Custom.IntClamp(
+                InvincibilityStarting.Value - (repeatingShortcutCount - InvincibilityShortcutUses.Value + 1) * InvincibilityReduction.Value,
+                InvincibilityMin.Value,
+                InvincibilityStarting.Value
+            );
         }
     }
 
     private static int GetShortcutDelay(int repeatingShortcutCount)
     {
-        // TODO: move to plugin options
-        int startingValue = 20;
-        int increaseFrom = 5;
-        int increase = 10;
-        int limit = 60;
-
-        if (repeatingShortcutCount < increaseFrom)
+        if (repeatingShortcutCount < ShortcutDelayShortcutUses.Value)
         {
-            return startingValue;
+            return ShortcutDelayStarting.Value;
         }
         else
         {
-            return Custom.IntClamp(startingValue + (repeatingShortcutCount - increaseFrom + 1) * increase, startingValue, limit);
+            return Custom.IntClamp(
+                ShortcutDelayStarting.Value + (repeatingShortcutCount - ShortcutDelayShortcutUses.Value + 1) * ShortcutDelayIncrease.Value,
+                ShortcutDelayStarting.Value,
+                ShortcutDelayMax.Value
+            );
         }
     }
 }

@@ -13,7 +13,7 @@ public interface IShortcut
 // Default interface implementation isn't supported with .net framework :(
 public static class IShortcutComparison
 {
-    extension (IShortcut self)
+    extension(IShortcut self)
     {
         public bool IsSameDirection(IShortcut other)
         {

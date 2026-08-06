@@ -18,7 +18,6 @@ public static class NoticeCreatureUtils
 
     public static void RemoveHooks()
     {
-        s_visualContactHook?.Undo();
         s_visualContactHook?.Dispose();
         s_visualContactHook = null;
     }

@@ -1,0 +1,175 @@
+﻿using System.Runtime.CompilerServices;
+using Menu.Remix.MixedUI;
+using Menu.Remix.MixedUI.ValueTypes;
+using MorePipeJukeNerfs.Remix;
+
+namespace MorePipeJukeNerfs;
+
+public class Options : OptionInterface
+{
+    public static Options Instance { get; } = new Options();
+
+    // TODO: write descriptions
+    public static Configurable<bool> ShortcutNoticeCreatures { get; } = Bind(true);
+    public static Configurable<bool> ShortcutNoticeUnseen { get; } = Bind(true);
+    public static Configurable<bool> ShortcutNoticeSeen { get; } = Bind(true);
+    public static Configurable<bool> ShortcutNoticeOnlyPlayer { get; } = Bind(false);
+
+    public static Configurable<bool> ReduceInvincibility { get; } = Bind(true);
+    public static Configurable<int> InvincibilityStarting { get; } = Bind(40, min: 0, max: 40);
+    public static Configurable<int> InvincibilityReduction { get; } = Bind(10, min: 0, max: 40);
+    public static Configurable<int> InvincibilityShortcutUses { get; } = Bind(3, min: 1, max: 99);
+    public static Configurable<int> InvincibilityMin { get; } = Bind(0, min: 0, max: 40);
+
+    public static Configurable<bool> IncreaseShortcutDelay { get; } = Bind(true);
+    public static Configurable<int> ShortcutDelayStarting { get; } = Bind(20, min: 20, max: 999);
+    public static Configurable<int> ShortcutDelayIncrease { get; } = Bind(10, min: 0, max: 999);
+    public static Configurable<int> ShortcutDelayShortcutUses { get; } = Bind(5, min: 1, max: 99);
+    public static Configurable<int> ShortcutDelayMax { get; } = Bind(60, min: 20, max: 999);
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        OpTab tab = new OpTab(this);
+        Tabs = [tab];
+
+        float offsetY = 10;
+        List<UIelement> list = UIQueue.InitializeQueues(tab, 40, ref offsetY,
+            new LabelQueue($"More Pipe Juke Nerfs", FLabelAlignment.Center, bigText: true),
+
+            new CheckBoxQueue("Creatures notice other creatures they meet in shortcut:", ShortcutNoticeCreatures) { OffsetX = -10 },
+            new CheckBoxQueue("Creatures that were not seen before are noticed", ShortcutNoticeUnseen),
+            new CheckBoxQueue("Creatures that were already seen are noticed", ShortcutNoticeSeen),
+            new CheckBoxQueue("Only player is noticed", ShortcutNoticeOnlyPlayer),
+
+            new SpaceQueue(40),
+
+            new CheckBoxQueue("Reduce invincibility player gets after exiting shortcut:", ReduceInvincibility) { OffsetX = -10, RightFocusThis = false },
+            new DurationInputQueue("Starting invincibility:", InvincibilityStarting) { LeftFocusTab = false, RightFocusThis = false },
+            new DurationAndShortcutUsesQueue("Reduce by", InvincibilityReduction, InvincibilityShortcutUses) { LeftFocusTab = false },
+            new DurationInputQueue("Minimal invincibility:", InvincibilityMin) { LeftFocusTab = false, RightFocusThis = false },
+
+            new SpaceQueue(40),
+
+            new CheckBoxQueue("Increase delay before player can enter shortcut after exiting one:", IncreaseShortcutDelay) { OffsetX = -10, RightFocusThis = false },
+            new DurationInputQueue("Starting delay:", ShortcutDelayStarting) { LeftFocusTab = false, RightFocusThis = false },
+            new DurationAndShortcutUsesQueue("Increase by", ShortcutDelayIncrease, ShortcutDelayShortcutUses) { LeftFocusTab = false },
+            new DurationInputQueue("Maximum delay:", ShortcutDelayMax) { LeftFocusTab = false, RightFocusThis = false }
+        );
+
+        BindDependentConfigs(list, ShortcutNoticeCreatures, [
+            ShortcutNoticeUnseen,
+            ShortcutNoticeSeen,
+            ShortcutNoticeOnlyPlayer
+        ], updateFocusables: true);
+        BindDependentConfigs(list, ReduceInvincibility, [
+            InvincibilityStarting,
+            InvincibilityReduction,
+            InvincibilityShortcutUses,
+            InvincibilityMin
+        ], updateFocusables: true);
+        BindDependentConfigs(list, IncreaseShortcutDelay, [
+            ShortcutDelayStarting,
+            ShortcutDelayIncrease,
+            ShortcutDelayShortcutUses,
+            ShortcutDelayMax
+        ], updateFocusables: true);
+
+        SetShortcutUsesFocusables(list.WithConfig(InvincibilityShortcutUses), list.WithConfig(InvincibilityReduction));
+        SetShortcutUsesFocusables(list.WithConfig(ShortcutDelayShortcutUses), list.WithConfig(ShortcutDelayIncrease));
+
+        list.OfType<UIfocusable>().First().SetNextFocusable(UIfocusable.NextDirection.Up,
+             FocusMenuPointer.GetPointer(FocusMenuPointer.MenuUI.RevertButton)
+        );
+        list.OfType<UIfocusable>().Last().SetNextFocusable(UIfocusable.NextDirection.Down,
+             FocusMenuPointer.GetPointer(FocusMenuPointer.MenuUI.RevertButton)
+        );
+    }
+
+    private static Configurable<T> Bind<T>(T defaultValue, string? description = null, [CallerMemberName] string? key = null)
+    {
+        return Instance.config.Bind(key, defaultValue, new ConfigurableInfo(GetDescription(description, defaultValue)));
+    }
+
+    private static Configurable<T> Bind<T>(T defaultValue, T min, T max, string? description = null, [CallerMemberName] string? key = null) where T : IComparable
+    {
+        return Instance.config.Bind(key, defaultValue, new ConfigurableInfo(GetDescription(description, defaultValue), new ConfigAcceptableRange<T>(min, max)));
+    }
+
+    private static string GetDescription<T>(string? description, T defaultValue)
+    {
+        string defaultString;
+        if (defaultValue is bool defaultBool)
+        {
+            defaultString = defaultBool ? "Enabled" : "Disabled";
+        }
+        else
+        {
+            defaultString = defaultValue!.ToString();
+        }
+        return string.IsNullOrWhiteSpace(description) ? $"Default: {defaultString}" : $"{description}, Default: {defaultString}";
+    }
+
+    private static void BindDependentConfigs(List<UIelement> list, Configurable<bool> mainConfig, List<ConfigurableBase> otherConfigs, bool updateFocusables = false)
+    {
+        OpCheckBox mainElement = (OpCheckBox)list.WithConfig(mainConfig);
+        List<UIconfig> dependentElements = otherConfigs.Select(config => list.WithConfig(config)).ToList();
+
+        UpdateDependentElements(mainElement.GetValueBool());
+        mainElement.OnValueUpdate += (_, _, _) => UpdateDependentElements(mainElement.GetValueBool());
+
+        void UpdateDependentElements(bool active)
+        {
+            foreach (UIconfig element in dependentElements)
+            {
+                element.greyedOut = !active;
+            }
+            if (updateFocusables)
+            {
+                UIconfig first = dependentElements[0];
+                UIconfig last = dependentElements[^1];
+
+                UIfocusable? beforeFirst = first.NextFocusable[(int)UIfocusable.NextDirection.Up];
+                UIfocusable? afterLast = last.NextFocusable[(int)UIfocusable.NextDirection.Down];
+
+                if (beforeFirst != null && afterLast != null)
+                {
+                    if (!active)
+                    {
+                        UIfocusable.MutualVerticalFocusableBind(afterLast, beforeFirst);
+                    }
+                    else
+                    {
+                        UIfocusable.MutualVerticalFocusableBind(first, beforeFirst);
+                        UIfocusable.MutualVerticalFocusableBind(afterLast, last);
+                    }
+                }
+                else if (beforeFirst != null)
+                {
+                    if (!active)
+                    {
+                        beforeFirst.SetNextFocusable(UIfocusable.NextDirection.Down,
+                            FocusMenuPointer.GetPointer(FocusMenuPointer.MenuUI.RevertButton)
+                        );
+                    }
+                    else
+                    {
+                        beforeFirst.SetNextFocusable(UIfocusable.NextDirection.Down, first);
+                    }
+                }
+            }
+        }
+    }
+
+    private void SetShortcutUsesFocusables(UIfocusable shortcutUsesElement, UIfocusable mainFocusable)
+    {
+        shortcutUsesElement.SetNextFocusable(UIfocusable.NextDirection.Up, mainFocusable.NextFocusable[(int)UIfocusable.NextDirection.Up]);
+        shortcutUsesElement.SetNextFocusable(UIfocusable.NextDirection.Down, mainFocusable.NextFocusable[(int)UIfocusable.NextDirection.Down]);
+
+        mainFocusable.NextFocusable[(int)UIfocusable.NextDirection.Up].SetNextFocusable(UIfocusable.NextDirection.Right, shortcutUsesElement);
+        mainFocusable.NextFocusable[(int)UIfocusable.NextDirection.Down].SetNextFocusable(UIfocusable.NextDirection.Right, shortcutUsesElement);
+    }
+
+    private Options(): base() {}
+}

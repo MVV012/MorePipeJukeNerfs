@@ -18,7 +18,7 @@ public static class VesselShortcutCWT
         On.ShortcutHandler.CreatureEnterFromAbstractRoom -= ShortcutHandler_CreatureEnterFromAbstractRoom;
     }
 
-    extension (ShortcutHandler.ShortCutVessel vessel)
+    extension(ShortcutHandler.ShortCutVessel vessel)
     {
         public bool TryGetShortcut(out IShortcut shortcut)
         {

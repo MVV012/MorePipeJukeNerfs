@@ -2,9 +2,10 @@ global using static MorePipeJukeNerfs.LogWrapper;
 
 using BepInEx;
 using BepInEx.Logging;
-using MorePipeJukeNerfs.Shortcuts;
 using System.Diagnostics;
 using System.Security.Permissions;
+using MorePipeJukeNerfs.Shortcuts;
+using MorePipeJukeNerfs.Remix;
 
 // Allows access to private members
 #pragma warning disable CS0618
@@ -30,12 +31,12 @@ internal static class LogWrapper
     }
 }
 
-[BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
+[BepInPlugin(GUID, NAME, VERSION)]
 sealed public class Plugin : BaseUnityPlugin
 {
-    public const string PLUGIN_GUID = "mvv012.morepipejukenerfs";
-    public const string PLUGIN_NAME = "More Pipe Juke Nerfs";
-    public const string PLUGIN_VERSION = "0.4.1";
+    public const string GUID = "mvv012.morepipejukenerfs";
+    public const string NAME = "More Pipe Juke Nerfs";
+    public const string VERSION = "0.4.1";
 
     private bool _isInit = false;
 
@@ -52,6 +53,13 @@ sealed public class Plugin : BaseUnityPlugin
         PipeJukeNotifier.ApplyHooks();
         PlayerShortcutTrackerCWT.ApplyHooks();
         ShortcutCounterReducer.ApplyHooks();
+        RemixUtils.ApplyHooks();
+
+#if DEBUG
+        // For Rain Reloader, does nothing without it
+        MachineConnector.SetRegisteredOI(GUID, Options.Instance);
+        MachineConnector.ReloadConfig(Options.Instance);
+#endif
     }
 
     public void OnDisable()
@@ -64,6 +72,7 @@ sealed public class Plugin : BaseUnityPlugin
         PipeJukeNotifier.RemoveHooks();
         PlayerShortcutTrackerCWT.RemoveHooks();
         ShortcutCounterReducer.RemoveHooks();
+        RemixUtils.RemoveHooks();
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
@@ -73,6 +82,6 @@ sealed public class Plugin : BaseUnityPlugin
         if (_isInit) return;
         _isInit = true;
 
-        // MachineConnector.SetRegisteredOI(PLUGIN_GUID, Options.Instance);
+        MachineConnector.SetRegisteredOI(GUID, Options.Instance);
     }
 }

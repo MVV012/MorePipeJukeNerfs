@@ -24,7 +24,7 @@ public class RepeatingShortcutTracker
 
     public void ExitedShortcut(IShortcut shortcut)
     {
-        // TODO: move to plugin options
+        // TODO: move to plugin options?
         int fastChangeTicks = 60;
         int resetTicks = 15 * 40;
 
