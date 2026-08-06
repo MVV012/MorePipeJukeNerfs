@@ -6,20 +6,12 @@ public static class NoticeCreatureUtils
 {
     private static bool s_overrideVisualContact = false;
 
-    private static Hook? s_visualContactHook;
-
     public static void ApplyHooks()
     {
-        s_visualContactHook = new Hook(
+        Plugin.ManualHooks.Add(new Hook(
             typeof(Tracker.CreatureRepresentation).GetProperty(nameof(Tracker.CreatureRepresentation.VisualContact)).GetGetMethod(),
             CreatureRepresentation_VisualContact
-        );
-    }
-
-    public static void RemoveHooks()
-    {
-        s_visualContactHook?.Dispose();
-        s_visualContactHook = null;
+        ));
     }
 
     private static bool CreatureRepresentation_VisualContact(Func<Tracker.CreatureRepresentation, bool> orig, Tracker.CreatureRepresentation self)

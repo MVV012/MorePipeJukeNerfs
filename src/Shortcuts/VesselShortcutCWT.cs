@@ -12,12 +12,6 @@ public static class VesselShortcutCWT
         On.ShortcutHandler.CreatureEnterFromAbstractRoom += ShortcutHandler_CreatureEnterFromAbstractRoom;
     }
 
-    public static void RemoveHooks()
-    {
-        On.ShortcutHandler.SuckInCreature -= ShortcutHandler_SuckInCreature;
-        On.ShortcutHandler.CreatureEnterFromAbstractRoom -= ShortcutHandler_CreatureEnterFromAbstractRoom;
-    }
-
     extension(ShortcutHandler.ShortCutVessel vessel)
     {
         public bool TryGetShortcut(out IShortcut shortcut)

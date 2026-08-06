@@ -1,11 +1,13 @@
 global using static MorePipeJukeNerfs.LogWrapper;
-
 using BepInEx;
 using BepInEx.Logging;
-using System.Diagnostics;
-using System.Security.Permissions;
-using MorePipeJukeNerfs.Shortcuts;
+using MonoMod.RuntimeDetour;
+using MonoMod.RuntimeDetour.HookGen;
 using MorePipeJukeNerfs.Remix;
+using MorePipeJukeNerfs.Shortcuts;
+using System.Diagnostics;
+using System.Reflection;
+using System.Security.Permissions;
 
 // Allows access to private members
 #pragma warning disable CS0618
@@ -40,6 +42,8 @@ sealed public class Plugin : BaseUnityPlugin
 
     private bool _isInit = false;
 
+    internal static List<Hook> ManualHooks = [];
+
     public void OnEnable()
     {
         Log = base.Logger;
@@ -50,10 +54,11 @@ sealed public class Plugin : BaseUnityPlugin
         VesselShortcutCWT.ApplyHooks();
         ShortcutPairTracking.ApplyHooks();
         NoticeCreatureUtils.ApplyHooks();
-        PipeJukeNotifier.ApplyHooks();
         PlayerShortcutTrackerCWT.ApplyHooks();
         ShortcutCounterReducer.ApplyHooks();
         RemixUtils.ApplyHooks();
+
+        PipeJukeNotifier.OnEnable();
 
 #if DEBUG
         // For Rain Reloader, does nothing without it
@@ -64,15 +69,14 @@ sealed public class Plugin : BaseUnityPlugin
 
     public void OnDisable()
     {
-        On.RainWorld.OnModsInit -= RainWorld_OnModsInit;
+        HookEndpointManager.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
+        foreach (Hook hook in ManualHooks)
+        {
+            hook.Dispose();
+        }
+        ManualHooks.Clear();
 
-        VesselShortcutCWT.RemoveHooks();
-        ShortcutPairTracking.RemoveHooks();
-        NoticeCreatureUtils.RemoveHooks();
-        PipeJukeNotifier.RemoveHooks();
-        PlayerShortcutTrackerCWT.RemoveHooks();
-        ShortcutCounterReducer.RemoveHooks();
-        RemixUtils.RemoveHooks();
+        PipeJukeNotifier.OnDisable();
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)

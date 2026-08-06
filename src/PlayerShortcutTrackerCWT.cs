@@ -16,11 +16,6 @@ public static class PlayerShortcutTrackerCWT
         On.Player.Update += Player_Update;
     }
 
-    public static void RemoveHooks()
-    {
-        On.Player.Update -= Player_Update;
-    }
-
     private static void Player_Update(On.Player.orig_Update orig, Player self, bool eu)
     {
         orig(self, eu);

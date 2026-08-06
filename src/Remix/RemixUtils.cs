@@ -11,11 +11,6 @@ public static class RemixUtils
         On.Menu.Remix.ConfigContainer.GetFocusables += ConfigContainer_GetFocusables;
     }
 
-    public static void RemoveHooks()
-    {
-        On.Menu.Remix.ConfigContainer.GetFocusables -= ConfigContainer_GetFocusables;
-    }
-
     private static List<UIfocusable> ConfigContainer_GetFocusables(On.Menu.Remix.ConfigContainer.orig_GetFocusables orig, ConfigContainer self)
     {
         List<UIfocusable> list = orig(self);

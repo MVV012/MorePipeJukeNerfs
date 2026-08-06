@@ -4,13 +4,13 @@ namespace MorePipeJukeNerfs;
 
 internal class PipeJukeNotifier
 {
-    public static void ApplyHooks() // Rename?
+    public static void OnEnable()
     {
         ShortcutPairTracking.FirstCreatureExited += FirstCreatureExited;
         ShortcutPairTracking.SecondCreatureExited += SecondCreatureExited;
     }
 
-    public static void RemoveHooks()
+    public static void OnDisable()
     {
         ShortcutPairTracking.FirstCreatureExited -= FirstCreatureExited;
         ShortcutPairTracking.SecondCreatureExited -= SecondCreatureExited;

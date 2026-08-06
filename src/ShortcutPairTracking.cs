@@ -17,11 +17,6 @@ public static class ShortcutPairTracking
         On.ShortcutHandler.SpitOutCreature += ShortcutHandler_SpitOutCreature;
     }
 
-    public static void RemoveHooks()
-    {
-        On.ShortcutHandler.SpitOutCreature -= ShortcutHandler_SpitOutCreature;
-    }
-
     private static void ShortcutHandler_SpitOutCreature(On.ShortcutHandler.orig_SpitOutCreature orig, ShortcutHandler self, ShortcutHandler.ShortCutVessel vessel)
     {
         orig(self, vessel);
