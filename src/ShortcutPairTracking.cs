@@ -30,7 +30,9 @@ public static class ShortcutPairTracking
         {
             foreach (ShortcutHandler.ShortCutVessel otherVessel in GetAllShortCutVessels(self))
             {
-                if (otherVessel.TryGetShortcut(out IShortcut otherShortcut) && curShortcut.IsOppositeDirection(otherShortcut))
+                if (otherVessel.TryGetShortcut(out IShortcut otherShortcut)
+                    && curShortcut.IsOppositeDirection(otherShortcut)
+                    && ShouldPairBeTracked(vessel.creature.abstractCreature, otherVessel.creature.abstractCreature))
                 {
                     Log.LogInfo($"{vessel.creature} and {otherVessel.creature} met in shortcut");
 
@@ -50,5 +52,25 @@ public static class ShortcutPairTracking
     private static IEnumerable<ShortcutHandler.ShortCutVessel> GetAllShortCutVessels(ShortcutHandler shortcutHandler)
     {
         return shortcutHandler.transportVessels.Concat(shortcutHandler.betweenRoomsWaitingLobby.OfType<ShortcutHandler.ShortCutVessel>());
+    }
+
+    private static bool ShouldPairBeTracked(AbstractCreature first, AbstractCreature second)
+    {
+        if (Options.ShortcutNoticeOnlyPlayer.Value
+            && first.realizedCreature is not Player { isNPC: false }
+            && second.realizedCreature is not Player { isNPC: false })
+        {
+            return false;
+        }
+        if (first.rippleLayer != second.rippleLayer && !first.rippleBothSides && !second.rippleBothSides)
+        {
+            return false;
+        }
+        if (first.realizedCreature is Player { IsHidden: true, VisibilityBonus: <= -1f }
+            || second.realizedCreature is Player { IsHidden: true, VisibilityBonus: <= -1f })
+        {
+            return false;
+        }
+        return true;
     }
 }

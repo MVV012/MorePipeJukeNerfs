@@ -41,15 +41,6 @@ internal class PipeJukeNotifier
 
     private static void OnPipeJuke(AbstractCreature cur, AbstractCreature other, AbstractRoom otherRoom, WorldCoordinate otherCoord, bool stop = false)
     {
-        if (Options.ShortcutNoticeOnlyPlayer.Value && other.realizedCreature is not Player { isNPC: false })
-        {
-            return;
-        }
-        if (other.realizedCreature is Player { IsHidden: true, VisibilityBonus: <= -1f })
-        {
-            return;
-        }
-
         Tracker.CreatureRepresentation? rep;
         if (cur.TryGetRepresentation(other, out rep))
         {
