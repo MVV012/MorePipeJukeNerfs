@@ -32,7 +32,7 @@ internal class PipeJukeNotifier
 
         if (other.TryGetRepresentation(cur, out var rep))
         {
-            rep.UnpauseStoppedGhost();
+            rep.UnpauseUnpushableGhosts();
         }
 
         // Updating state here is less accurate, but causes less exceptions

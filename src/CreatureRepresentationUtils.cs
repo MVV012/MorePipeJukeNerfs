@@ -27,8 +27,8 @@ public static class CreatureRepresentationUtils
         /// </summary>
         /// <param name="room">Abstract room of shortcut entrance</param>
         /// <param name="coord">World coordinate of shortcut entrance</param>
-        /// <param name="stop">Should ghost be stopped</param>
-        public void MoveToShortcutEntrance(AbstractRoom room, WorldCoordinate coord, bool stop = false)
+        /// <param name="pause">Should ghost be paused</param>
+        public void MoveToShortcutEntrance(AbstractRoom room, WorldCoordinate coord, bool pause = false)
         {
             if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
             {
@@ -40,8 +40,6 @@ public static class CreatureRepresentationUtils
                 }
                 Tracker.Ghost ghost = elabRep.ghosts[0];
                 ghost.generation = 0;
-                ghost.stopped = stop;
-                ghost.lastCoord = coord;
                 if (room.realizedRoom != null)
                 {
                     IntVector2 entraceHoleDirection = room.realizedRoom.ShorcutEntranceHoleDirection(coord.Tile);
@@ -52,6 +50,11 @@ public static class CreatureRepresentationUtils
                 {
                     ghost.coord = coord;
                     ghost.vel = Vector2.zero;
+                }
+                ghost.lastCoord = ghost.coord;
+                if (pause)
+                {
+                    ghost.Pause();
                 }
                 // Copied from Room.MiddleOfTile (why there is no static variant?)
                 ghost.pos = new Vector2(10f + (float)ghost.coord.x * 20f, 10f + (float)ghost.coord.y * 20f);
@@ -82,14 +85,20 @@ public static class CreatureRepresentationUtils
         }
 
         /// <summary>
-        /// Unpauses stopped ghost
+        /// Unpauses unpushable ghosts
         /// Should be called after using MoveToShortcutEntrance
         /// </summary>
-        public void UnpauseStoppedGhost()
+        public void UnpauseUnpushableGhosts()
         {
-            if (rep is Tracker.ElaborateCreatureRepresentation elabRep && elabRep.ghosts.Count == 1)
+            if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
             {
-                elabRep.ghosts[0].stopped = false;
+                foreach (Tracker.Ghost ghost in elabRep.ghosts)
+                {
+                    if (!ghost.Pushable)
+                    {
+                        ghost.Unpause();
+                    }
+                }
             }
         }
     }

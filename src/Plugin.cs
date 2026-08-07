@@ -54,6 +54,7 @@ sealed public class Plugin : BaseUnityPlugin
         VesselShortcutCWT.ApplyHooks();
         ShortcutPairTracking.ApplyHooks();
         NoticeCreatureUtils.ApplyHooks();
+        GhostUtils.ApplyHooks();
         PlayerShortcutTrackerCWT.ApplyHooks();
         ShortcutCounterReducer.ApplyHooks();
         RemixUtils.ApplyHooks();
@@ -69,7 +70,7 @@ sealed public class Plugin : BaseUnityPlugin
 
     public void OnDisable()
     {
-        HookEndpointManager.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
+        HookEndpointManager.RemoveAllOwnedBy(typeof(Plugin).Assembly);
         foreach (Hook hook in ManualHooks)
         {
             hook.Dispose();
