@@ -19,4 +19,6 @@ public class NormalShortcut : IShortcut
     public AbstractRoom DestRoom => _shortcutData.room.abstractRoom;
     public WorldCoordinate StartCoord => _shortcutData.startCoord;
     public WorldCoordinate DestCoord => _shortcutData.destinationCoord;
+
+    public override string ToString() => this.ConvertToString();
 }

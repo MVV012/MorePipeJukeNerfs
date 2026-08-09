@@ -15,4 +15,6 @@ public class OppositeShortcut : IShortcut
     public WorldCoordinate DestCoord => _shortcut.StartCoord;
     public AbstractRoom StartRoom => _shortcut.DestRoom;
     public AbstractRoom DestRoom => _shortcut.StartRoom;
+
+    public override string ToString() => this.ConvertToString();
 }

@@ -9,10 +9,11 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>../mod/newest/plugins</OutputPath>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="../lib/**/*.dll">
+    <Reference Include="../lib/**/*.dll" Exclude="../lib/debug/**/*.dll">
       <Private>false</Private>
     </Reference>
   </ItemGroup>
@@ -22,6 +23,16 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' != 'Debug'">
+    <Compile Remove="Debug/**" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <Reference Include="../lib/debug/**/*.dll">
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

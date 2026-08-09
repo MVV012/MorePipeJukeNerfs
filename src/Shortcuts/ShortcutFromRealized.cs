@@ -48,4 +48,6 @@ public class ShortcutFromRealized : IShortcut
             return dest;
         }
     }
+
+    public override string ToString() => this.ConvertToString();
 }

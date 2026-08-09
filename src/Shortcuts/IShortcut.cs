@@ -1,3 +1,5 @@
+using RWCustom;
+
 namespace MorePipeJukeNerfs.Shortcuts;
 
 public interface IShortcut
@@ -44,6 +46,25 @@ public static class IShortcutComparison
         public bool IsSameShortcut(IShortcut other)
         {
             return self.IsSameDirection(other) || self.IsOppositeDirection(other);
+        }
+
+        internal string ConvertToString()
+        {
+            IntVector2 startTile = self.StartCoord.Tile;
+            IntVector2 destTile = self.DestCoord.Tile;
+
+            if (self.Type == ShortcutData.Type.Normal)
+            {
+                return $"SC ~ {self.StartRoom.name}: ({startTile.x}, {startTile.y}) -> ({destTile.x}, {destTile.y})";
+            }
+            else if (self.Type == ShortcutData.Type.RoomExit)
+            {
+                return $"SC ~ {self.StartRoom.name} ({startTile.x}, {startTile.y}) -> {self.DestRoom.name} ({destTile.x}, {destTile.y})";
+            }
+            else
+            {
+                return "Unknown shortcut type";
+            }
         }
     }
 }

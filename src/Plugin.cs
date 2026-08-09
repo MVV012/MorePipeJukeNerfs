@@ -41,6 +41,7 @@ sealed public class Plugin : BaseUnityPlugin
     public const string VERSION = "0.4.1";
 
     private bool _isInit = false;
+    internal static bool DebugDependenciesEnabled = false;
 
     internal static List<Hook> ManualHooks = [];
 
@@ -65,6 +66,18 @@ sealed public class Plugin : BaseUnityPlugin
         // For Rain Reloader, does nothing without it
         MachineConnector.SetRegisteredOI(GUID, Options.Instance);
         MachineConnector.ReloadConfig(Options.Instance);
+
+        List<string> debugDeps = ["rwimgui", "fluffball.logmanager", "maxi-mol.mousedrag", "slime-cubed.devconsole", "warp"];
+        List<string> disabledDeps = debugDeps.Where(dep => !ModManager.ActiveMods.Exists(mod => mod.id == dep)).ToList();
+        DebugDependenciesEnabled = disabledDeps.Count == 0;
+        if (DebugDependenciesEnabled)
+        {
+            Debug.DebugImGUIWindow.OnEnable();
+        }
+        else
+        {
+            DebugLog(LogLevel.Warning, $"Dependencies ({string.Join(", ", disabledDeps)}) for debug imgui menu are not enabled");
+        }
 #endif
     }
 
@@ -78,6 +91,13 @@ sealed public class Plugin : BaseUnityPlugin
         ManualHooks.Clear();
 
         PipeJukeNotifier.OnDisable();
+
+#if DEBUG
+        if (DebugDependenciesEnabled)
+        {
+            Debug.DebugImGUIWindow.OnDisable();
+        }
+#endif
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
