@@ -54,6 +54,7 @@ internal class DebugImGUIWindow
     private static CreatureTemplate.Type testedCreature = CreatureTemplate.Type.PinkLizard;
     private static CreatureTemplate.Type otherCreature = CreatureTemplate.Type.BlueLizard;
     private static FormatEnums.FormatVerbosity reportVerbosity = FormatEnums.FormatVerbosity.Verbose;
+    private static bool assertNoLoggedErrors = true;
     private static void WindowContent()
     {
         if (!RWGameUtils.TryGetRWGame(out RainWorldGame game))
@@ -96,6 +97,7 @@ internal class DebugImGUIWindow
             ImGui.Separator();
 
             ImGUIComponents.EnumPicker("Report verbosity", ref reportVerbosity);
+            ImGui.Checkbox("Assert no logged errors", ref assertNoLoggedErrors);
 
             if (!game.GamePaused)
             {
@@ -108,6 +110,7 @@ internal class DebugImGUIWindow
                             TestedType = testedCreature,
                             OtherType = otherCreature,
                         };
+                        ShortcutTestBase.AssertNoLoggedErrors = assertNoLoggedErrors;
                         runner.RunTests(factory.CreateNormalGroup());
                     });
                 }

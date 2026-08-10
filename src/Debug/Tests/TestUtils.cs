@@ -15,7 +15,7 @@ internal static class TestUtils
         }
     }
 
-    private static FieldInfo? s_conditionResult;
+    private static FieldInfo? s_conditionResultField;
 
     extension<T>(Condition<T> cond)
     {
@@ -26,13 +26,16 @@ internal static class TestUtils
 
         public Condition<T> OnFail(string message)
         {
-            if (s_conditionResult == null)
+            if (!cond.Passed)
             {
-                s_conditionResult = typeof(Condition<T>).GetField("Result", BindingFlags.Instance | BindingFlags.NonPublic);
-            }
+                if (s_conditionResultField == null)
+                {
+                    s_conditionResultField = typeof(Condition<T>).GetField("Result", BindingFlags.Instance | BindingFlags.NonPublic);
+                }
 
-            Condition.Result result = (Condition.Result)s_conditionResult.GetValue(cond);
-            result.Message = new Condition.Message(message);
+                Condition.Result result = (Condition.Result)s_conditionResultField.GetValue(cond);
+                result.Message = new Condition.Message(message);
+            }
             return cond;
         }
     }

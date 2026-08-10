@@ -19,6 +19,7 @@ internal class TestRunner
     private static void Init()
     {
         TestLogID = new LogID("MorePipeJukeNerfsTests.log", LogAccess.FullAccess, register: true);
+        LogUtilsLogger.RemoveIntoOutroMessages(TestLogID);
         TestLogger = new Logger(TestLogID);
         CombinedLogger = new Logger(LogTarget.Combiner.Combine(LogUtilsLogger.ID, TestLogID));
     }

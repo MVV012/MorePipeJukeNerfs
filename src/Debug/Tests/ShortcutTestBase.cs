@@ -1,6 +1,7 @@
 ﻿using LogUtils.Diagnostics;
 using LogUtils.Diagnostics.Tests;
-using System.Diagnostics.CodeAnalysis;
+using LogUtils.Enums;
+using LogUtils.Events;
 
 namespace MorePipeJukeNerfs.Debug.Tests;
 
@@ -18,6 +19,8 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
     public abstract string Region { get; }
 
     protected RainWorldGame _game = null!; // MemberNotNullWhenAttribute on Setup doesn't work for TestContent :(
+
+    public static bool AssertNoLoggedErrors = true;
 
     public ShortcutTestBase(ShortcutTestInfo info, string name) : base(name)
     {
@@ -50,12 +53,32 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
     {
         Condition.Result.ResetCount();
 
+        bool errorLogged = false;
+        LogRequestEventHandler? logRequestHandler = null;
+        if (AssertNoLoggedErrors)
+        {
+            logRequestHandler = request =>
+            {
+                if (request.Data.ID == LogUtilsLogger.ID && LogCategory.IsErrorCategory(request.Data.Category))
+                {
+                    errorLogged = true;
+                }
+            };
+            LogRequestEvents.OnSubmit += logRequestHandler;
+        }
+
         if (!Setup())
         {
             return;
         }
 
         TestContent();
+
+        if (AssertNoLoggedErrors)
+        {
+            AssertThat(errorLogged).IsFalse().OnFail($"Exception caught and logged to {LogUtilsLogger.ID.Properties.CurrentFilename}");
+            LogRequestEvents.OnSubmit -= logRequestHandler;
+        }
 
         _game.MurderEveryone();
     }

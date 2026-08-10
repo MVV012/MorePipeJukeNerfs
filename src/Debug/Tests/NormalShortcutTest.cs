@@ -65,6 +65,13 @@ internal class NormalShortcutTest : ShortcutTestBase
         if (Info.Seen)
         {
             _tested.abstractCreature.NoticeCreature(_other.abstractCreature);
+            _other.abstractCreature.NoticeCreature(_tested.abstractCreature);
+
+            if (!_tested.abstractCreature.TryGetRepresentation(_other.abstractCreature, out var rep))
+            {
+                this.Fail("Failed to make tested creature aware of other one");
+                return false;
+            }
         }
 
         if (Info.First)
@@ -125,8 +132,6 @@ internal class NormalShortcutTest : ShortcutTestBase
         {
             AssertThat(rep.dynamicRelationship.currentRelationship.type).DoesNotEqual(CreatureTemplate.Relationship.Type.SocialDependent); // 8/9
         }
-
-        // TODO: add check for handled exceptions from logger
     }
 
     public static string GetTestName(ShortcutTestInfo data)

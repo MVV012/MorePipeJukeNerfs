@@ -17,7 +17,10 @@ internal static class LogUtilsLogger
     public static void OnEnable()
     {
         ID = new LogID("MorePipeJukeNerfs.log", LogAccess.FullAccess, register: true);
+        ID.Properties.ReadOnly = false;
         ID.Properties.ShowCategories.Enable();
+        RemoveIntoOutroMessages(ID);
+        ID.Properties.ReadOnly = true;
 
         Global.Log = new Logger(ID);
     }
@@ -30,5 +33,13 @@ internal static class LogUtilsLogger
     public static void Log(BepInEx.Logging.LogLevel level, object data)
     {
         Global.Log.Log(level, data);
+    }
+
+    public static void RemoveIntoOutroMessages(LogID logID)
+    {
+        logID.Properties.ReadOnly = false;
+        logID.Properties.IntroMessage = null;
+        logID.Properties.OutroMessage = null;
+        logID.Properties.ReadOnly = true;
     }
 }
