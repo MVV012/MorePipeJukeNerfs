@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using LogUtils;
 using LogUtils.Enums;
+using LogUtils.Helpers;
 using MonoMod.RuntimeDetour;
 using MorePipeJukeNerfs.Debug.Tests;
 using MorePipeJukeNerfs.Shortcuts;
@@ -61,15 +62,28 @@ internal class DebugImGUIWindow
             return;
         }
 
-        if (ImGui.Button("Murder everyone"))
+        if (ImGui.TreeNodeEx("Wawa", ImGuiTreeNodeFlags.Framed))
         {
-            MouseDrag.Destroy.DestroyRegionObjects(game, creatures: true, items: true);
-        }
+            ImGui.Unindent();
 
-        ImGui.InputInt("Update count", ref updates);
-        if (ImGui.Button($"Update game {updates} times###update_button"))
-        {
-            RunOnMainThread(() => game.Update(updates));
+            if (ImGui.Button("Murder everyone"))
+            {
+                MouseDrag.Destroy.DestroyRegionObjects(game, creatures: true, items: true);
+            }
+
+            ImGui.InputInt("Update count", ref updates);
+            if (ImGui.Button($"Update game {updates} times###update_button"))
+            {
+                RunOnMainThread(() => game.Update(updates));
+            }
+
+            if (ImGui.Button("Clear log"))
+            {
+                LogFile.StartNewSession(LogUtilsLogger.ID);
+            }
+
+            ImGui.Indent();
+            ImGui.TreePop();
         }
 
         if (ImGui.TreeNodeEx("Testing", ImGuiTreeNodeFlags.Framed))

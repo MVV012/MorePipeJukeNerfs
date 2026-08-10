@@ -1,3 +1,4 @@
+using BepInEx.Logging;
 using MonoMod.RuntimeDetour;
 
 namespace MorePipeJukeNerfs;
@@ -49,8 +50,7 @@ public static class NoticeCreatureUtils
         }
         catch (Exception e)
         {
-            Log.LogError($"Failed to update relationship of {rep.parent.AI.creature} towards {rep.representedCreature}");
-            Log.LogError($"Exception: {e}");
+            ReleaseLog(LogLevel.Error, $"Failed to update relationship of {rep.parent.AI.creature} towards {rep.representedCreature}. Exception: {e}");
         }
         finally
         {
@@ -72,8 +72,7 @@ public static class NoticeCreatureUtils
         }
         catch (Exception e)
         {
-            Log.LogError($"Failed to make {tracking} notice {tracked}");
-            Log.LogError($"Exception: {e}");
+            ReleaseLog(LogLevel.Error, $"Failed to make {tracking} notice {tracked}. Exception: {e}");
         }
     }
 }

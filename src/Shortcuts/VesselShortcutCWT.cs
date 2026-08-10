@@ -1,3 +1,4 @@
+using BepInEx.Logging;
 using System.Runtime.CompilerServices;
 
 namespace MorePipeJukeNerfs.Shortcuts;
@@ -32,13 +33,13 @@ public static class VesselShortcutCWT
 
         if (self.transportVessels.Count == 0)
         {
-            Log.LogWarning("ShortcutHandler_SuckInCreature: transportVessels is empty for some reason");
+            ReleaseLog(LogLevel.Warning, "ShortcutHandler_SuckInCreature: transportVessels is empty for some reason");
             return;
         }
         ShortcutHandler.ShortCutVessel vessel = self.transportVessels[^1];
         if (vessel.creature != creature)
         {
-            Log.LogWarning("ShortcutHandler_SuckInCreature: " +
+            ReleaseLog(LogLevel.Warning, "ShortcutHandler_SuckInCreature: " +
                 "Last ShortcutVessel in transportVessels has different creature for some reason");
             return;
         }
@@ -64,7 +65,7 @@ public static class VesselShortcutCWT
 
         if (self.betweenRoomsWaitingLobby.Count == 0)
         {
-            Log.LogWarning("ShortcutHandler_CreatureEnterFromAbstractRoom: " +
+            ReleaseLog(LogLevel.Warning, "ShortcutHandler_CreatureEnterFromAbstractRoom: " +
                 "betweenRoomsWaitingLobby is empty for some reason");
             return;
         }
@@ -72,7 +73,7 @@ public static class VesselShortcutCWT
         {
             if (vessel.creature != creature)
             {
-                Log.LogWarning("ShortcutHandler_CreatureEnterFromAbstractRoom: " +
+                ReleaseLog(LogLevel.Warning, "ShortcutHandler_CreatureEnterFromAbstractRoom: " +
                     "Last ShortcutVessel in betweenRoomsWaitingLobby has different creature for some reason");
                 return;
             }

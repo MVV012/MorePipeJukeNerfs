@@ -1,3 +1,4 @@
+using BepInEx.Logging;
 using MorePipeJukeNerfs.Shortcuts;
 using System.Runtime.CompilerServices;
 
@@ -34,7 +35,7 @@ public static class ShortcutPairTracking
                     && curShortcut.IsOppositeDirection(otherShortcut)
                     && ShouldPairBeTracked(vessel.creature.abstractCreature, otherVessel.creature.abstractCreature))
                 {
-                    Log.LogInfo($"{vessel.creature} and {otherVessel.creature} met in shortcut");
+                    ReleaseLog(LogLevel.Info, $"{vessel.creature} and {otherVessel.creature} met in shortcut");
 
                     FirstCreatureExited?.Invoke(vessel.creature.abstractCreature, otherVessel.creature.abstractCreature, curShortcut);
 

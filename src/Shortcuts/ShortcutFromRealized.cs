@@ -1,3 +1,5 @@
+using BepInEx.Logging;
+
 namespace MorePipeJukeNerfs.Shortcuts;
 
 public class ShortcutFromRealized : IShortcut
@@ -11,7 +13,7 @@ public class ShortcutFromRealized : IShortcut
     {
         if (shortcutData.shortCutType != ShortcutData.Type.RoomExit)
         {
-            Log.LogError($"ShortcutFromRealized was created with shortcut of type {shortcutData.shortCutType}");
+            ReleaseLog(LogLevel.Error, $"ShortcutFromRealized was created with shortcut of type {shortcutData.shortCutType}");
         }
 
         _startRoom = shortcutData.room.abstractRoom;

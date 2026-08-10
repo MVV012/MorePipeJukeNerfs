@@ -1,3 +1,5 @@
+using BepInEx.Logging;
+
 namespace MorePipeJukeNerfs.Shortcuts;
 
 public class NormalShortcut : IShortcut
@@ -8,7 +10,7 @@ public class NormalShortcut : IShortcut
     {
         if (shortcutData.shortCutType != ShortcutData.Type.Normal)
         {
-            Log.LogError($"NormalShortcut was created with shortcut of type {shortcutData.shortCutType}");
+            ReleaseLog(LogLevel.Error, $"NormalShortcut was created with shortcut of type {shortcutData.shortCutType}");
         }
         _shortcutData = shortcutData;
     }

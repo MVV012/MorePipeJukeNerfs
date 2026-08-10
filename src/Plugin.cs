@@ -1,12 +1,9 @@
-global using static MorePipeJukeNerfs.LogWrapper;
 using BepInEx;
 using BepInEx.Logging;
 using MonoMod.RuntimeDetour;
 using MonoMod.RuntimeDetour.HookGen;
 using MorePipeJukeNerfs.Remix;
 using MorePipeJukeNerfs.Shortcuts;
-using System.Diagnostics;
-using System.Reflection;
 using System.Security.Permissions;
 
 // Allows access to private members
@@ -16,23 +13,6 @@ using System.Security.Permissions;
 
 namespace MorePipeJukeNerfs;
 
-internal static class LogWrapper
-{
-    public static ManualLogSource Log = null!;
-
-    [Conditional("DEBUG")]
-    public static void DebugLog(LogLevel level, object data)
-    {
-        Log.Log(level, data);
-    }
-
-    [Conditional("DEBUG")]
-    public static void DebugLogInfo(object data)
-    {
-        Log.LogInfo(data);
-    }
-}
-
 [BepInPlugin(GUID, NAME, VERSION)]
 sealed public class Plugin : BaseUnityPlugin
 {
@@ -41,13 +21,14 @@ sealed public class Plugin : BaseUnityPlugin
     public const string VERSION = "0.4.1";
 
     private bool _isInit = false;
-    internal static bool DebugDependenciesEnabled = false;
+    internal static bool DebugWindowEnabled = false;
 
     internal static List<Hook> ManualHooks = [];
 
     public void OnEnable()
     {
-        Log = base.Logger;
+        LogWrapper.OnEnable(base.Logger);
+
         DebugLogInfo("OnEnable");
 
         On.RainWorld.OnModsInit += RainWorld_OnModsInit;
@@ -63,21 +44,7 @@ sealed public class Plugin : BaseUnityPlugin
         PipeJukeNotifier.OnEnable();
 
 #if DEBUG
-        // For Rain Reloader, does nothing without it
-        MachineConnector.SetRegisteredOI(GUID, Options.Instance);
-        MachineConnector.ReloadConfig(Options.Instance);
-
-        List<string> debugDeps = ["rwimgui", "fluffball.logmanager", "maxi-mol.mousedrag", "slime-cubed.devconsole", "warp"];
-        List<string> disabledDeps = debugDeps.Where(dep => !ModManager.ActiveMods.Exists(mod => mod.id == dep)).ToList();
-        DebugDependenciesEnabled = disabledDeps.Count == 0;
-        if (DebugDependenciesEnabled)
-        {
-            Debug.DebugImGUIWindow.OnEnable();
-        }
-        else
-        {
-            DebugLog(LogLevel.Warning, $"Dependencies ({string.Join(", ", disabledDeps)}) for debug imgui menu are not enabled");
-        }
+        DebugOnEnable();
 #endif
     }
 
@@ -93,11 +60,12 @@ sealed public class Plugin : BaseUnityPlugin
         PipeJukeNotifier.OnDisable();
 
 #if DEBUG
-        if (DebugDependenciesEnabled)
+        if (DebugWindowEnabled)
         {
             Debug.DebugImGUIWindow.OnDisable();
         }
 #endif
+        LogWrapper.OnDisable();
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
@@ -109,4 +77,31 @@ sealed public class Plugin : BaseUnityPlugin
 
         MachineConnector.SetRegisteredOI(GUID, Options.Instance);
     }
+
+#if DEBUG
+    public void DebugOnEnable()
+    {
+        // For Rain Reloader, does nothing without it
+        MachineConnector.SetRegisteredOI(GUID, Options.Instance);
+        MachineConnector.ReloadConfig(Options.Instance);
+
+        List<string> debugDeps = ["rwimgui", "maxi-mol.mousedrag", "warp"];
+        List<string> disabledDeps = debugDeps.Where(dep => !ModManager.ActiveMods.Exists(mod => mod.id == dep)).ToList();
+
+        if (disabledDeps.Count != 0)
+        {
+            DebugLog(LogLevel.Warning, $"Dependencies ({string.Join(", ", disabledDeps)}) for debug imgui menu are not enabled");
+        }
+        if (!LogWrapper.LogUtilsUsed)
+        {
+            DebugLog(LogLevel.Warning, $"LogUtils required for debug imgui menu is not enabled (Add as assembly or enable Log Manager)");
+        }
+
+        if (disabledDeps.Count == 0 && LogWrapper.LogUtilsUsed)
+        {
+            Debug.DebugImGUIWindow.OnEnable();
+            DebugWindowEnabled = true;
+        }
+    }
+#endif
 }
