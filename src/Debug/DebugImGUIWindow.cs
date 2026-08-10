@@ -1,6 +1,8 @@
 ﻿using ImGuiNET;
 using LogUtils;
+using LogUtils.Enums;
 using MonoMod.RuntimeDetour;
+using MorePipeJukeNerfs.Debug.Tests;
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
 using RWIMGUI.API;
@@ -48,6 +50,9 @@ internal class DebugImGUIWindow
     }
 
     private static int updates = 40;
+    private static CreatureTemplate.Type testedCreature = CreatureTemplate.Type.PinkLizard;
+    private static CreatureTemplate.Type otherCreature = CreatureTemplate.Type.BlueLizard;
+    private static FormatEnums.FormatVerbosity reportVerbosity = FormatEnums.FormatVerbosity.Verbose;
     private static void WindowContent()
     {
         if (!RWGameUtils.TryGetRWGame(out RainWorldGame game))
@@ -64,14 +69,44 @@ internal class DebugImGUIWindow
         ImGui.InputInt("Update count", ref updates);
         if (ImGui.Button($"Update game {updates} times###update_button"))
         {
-            UtilityCore.Scheduler.Schedule(() =>
+            RunOnMainThread(() => game.Update(updates));
+        }
+
+        if (ImGui.TreeNodeEx("Testing", ImGuiTreeNodeFlags.Framed))
+        {
+            ImGui.Unindent();
+
+            ImGUIComponents.CreatureTemplatePicker("Tested creature", ref testedCreature);
+            ImGUIComponents.CreatureTemplatePicker("Other creature", ref otherCreature);
+
+            ImGui.Separator();
+
+            ImGUIComponents.EnumPicker("Report verbosity", ref reportVerbosity);
+
+            if (!game.GamePaused)
             {
-                for (int i = 0; i < updates; i++)
+                if (ImGui.Button("Run test"))
                 {
-                    game.Update();
+                    RunOnMainThread(() => {
+                        TestRunner runner = new() { ReportVerbosity = reportVerbosity };
+                        ShortcutTestFactory factory = new()
+                        {
+                            TestedType = testedCreature,
+                            OtherType = otherCreature,
+                        };
+                        runner.RunTests(factory.CreateNormalGroup());
+                    });
                 }
-            },
-            frameInterval: 1, invokeLimit: 1);
+            }
+            else
+            {
+                ImGui.BeginDisabled();
+                ImGui.Button("Unpause game");
+                ImGui.EndDisabled();
+            }
+
+            ImGui.Indent();
+            ImGui.TreePop();
         }
 
         if (ImGui.TreeNodeEx("Creatures", ImGuiTreeNodeFlags.Framed))
@@ -83,7 +118,7 @@ internal class DebugImGUIWindow
                 .Where(cr => !cr.creatureTemplate.smallCreature)
                 .OrderBy(cr => cr.ID.number))
             {
-                CreatureInfoComponent(cr);
+                ImGUIComponents.CreatureInfo(cr);
             }
 
             ImGui.Indent();
@@ -91,46 +126,8 @@ internal class DebugImGUIWindow
         }
     }
 
-    private static void CreatureInfoComponent(AbstractCreature cr)
+    private static void RunOnMainThread(Action action)
     {
-        if (ImGui.TreeNode($"{cr} in {cr.Room.name}###{cr.ID.number}")) {
-            ImGui.Text(cr.pos.ToString());
-
-            if (cr.realizedCreature == null)
-            {
-                ImGui.Text("Creature is not realized");
-                ImGui.TreePop();
-                return;
-            }
-
-            Creature real = cr.realizedCreature;
-            ImGui.Text($"Main body chunk pos: {real.mainBodyChunk.pos}");
-
-            string shortcutString =
-                real.inShortcut && real.inShortcutVessel.TryGetShortcut(out IShortcut shortcut)
-                ? shortcut.ToString()
-                : "Not in shortcut";
-
-            if (ImGui.TreeNode($"{shortcutString}###{cr.ID.number}"))
-            {
-                ImGui.Unindent();
-                SuckIntoShortcutComponent(real);
-                ImGui.Indent();
-                ImGui.TreePop();
-            }
-            ImGui.TreePop();
-        }
-    }
-
-    private static int[] shortcutPos = new int[2];
-    private static void SuckIntoShortcutComponent(Creature real)
-    {
-        ImGui.SetNextItemWidth(-165);
-        ImGui.InputInt2("", ref shortcutPos[0]);
-        ImGui.SameLine();
-        if (ImGui.Button("Suck into shortcut"))
-        {
-            real.SuckedIntoShortCut(new IntVector2(shortcutPos[0], shortcutPos[1]), false);
-        }
+        UtilityCore.Scheduler.Schedule(action, frameInterval: 1, invokeLimit: 1);
     }
 }
