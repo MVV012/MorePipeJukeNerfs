@@ -7,34 +7,43 @@ internal class ShortcutTestFactory
     public required CreatureTemplate.Type TestedType { get; set; }
     public required CreatureTemplate.Type OtherType { get; set; }
 
-    public TestableGroup CreateNormalGroup(TestCaseGroup? group = null)
+    public TestableGroup CreateAll(TestCaseGroup? group = null)
     {
-        TestableGroup normalGroup = group == null
-            ? new TestableGroup($"{TestedType} -> {OtherType}, Normal shortcut")
-            : new TestableGroup(group, $"{TestedType} -> {OtherType}, Normal shortcut");
+        TestableGroup newGroup = TestableGroup.Create($"{TestedType} -> {OtherType}", group);
 
-        CreateNormal(normalGroup, first: true, seen: false);
-        CreateNormal(normalGroup, first: false, seen: false);
-        CreateNormal(normalGroup, first: true, seen: true);
-        CreateNormal(normalGroup, first: false, seen: true);
+        CreateGroup(ShortcutTestType.NormalShortcut, newGroup);
+        CreateGroup(ShortcutTestType.RealizedToRealized, newGroup);
 
-        return normalGroup;
+        return newGroup;
     }
 
-    public NormalShortcutTest CreateNormal(TestCaseGroup? group = null, bool first = true, bool seen = false)
+    public TestableGroup CreateGroup(ShortcutTestType type, TestCaseGroup? group = null)
     {
-        return group == null
-            ? new NormalShortcutTest(new ShortcutTestBase.ShortcutTestInfo() {
+        TestableGroup newGroup = TestableGroup.Create($"{TestedType} -> {OtherType}, {type}", group);
+
+        CreateTest(type, first: true, seen: false, newGroup);
+        CreateTest(type, first: false, seen: false, newGroup);
+        CreateTest(type, first: true, seen: true, newGroup);
+        CreateTest(type, first: false, seen: true, newGroup);
+
+        return newGroup;
+    }
+
+    public ShortcutTestBase CreateTest(ShortcutTestType type, bool first = true, bool seen = false, TestCaseGroup? group = null)
+    {
+        return type switch
+        {
+            ShortcutTestType.NormalShortcut or ShortcutTestType.RealizedToRealized => RealizedShortcutTest.Create(new ShortcutTestBase.ShortcutTestInfo()
+            {
+                Type = type,
                 TestedType = TestedType,
                 OtherType = OtherType,
                 First = first,
                 Seen = seen
-            })
-            : new NormalShortcutTest(group, new ShortcutTestBase.ShortcutTestInfo() {
-                TestedType = TestedType,
-                OtherType = OtherType,
-                First = first,
-                Seen = seen
-            });
+            }, RealizedShortcutTest.LocationInfo.GetLocation(type), group),
+
+            ShortcutTestType.AbstractToRealized => throw new NotImplementedException(),
+            _ => throw new Exception("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        };
     }
 }

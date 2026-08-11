@@ -20,4 +20,11 @@ internal class TestableGroup : TestCaseGroup, ITestable
     {
         TestLogger.LogDebug(CreateReport());
     }
+
+    public static TestableGroup Create(string name, TestCaseGroup? group = null)
+    {
+        return group == null
+            ? new TestableGroup(name)
+            : new TestableGroup(group, name);
+    }
 }

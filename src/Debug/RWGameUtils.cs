@@ -1,4 +1,5 @@
 ﻿using RWCustom;
+using System.Reflection;
 using UnityEngine;
 
 namespace MorePipeJukeNerfs.Debug;
@@ -17,6 +18,8 @@ internal static class RWGameUtils
             return false;
         }
     }
+
+    private static MethodInfo? s_debugVisClearAll = null;
 
     extension(RainWorldGame game)
     {
@@ -38,9 +41,9 @@ internal static class RWGameUtils
             return false;
         }
 
-        public AbstractCreature SpawnCreature(AbstractRoom room, IntVector2 tile, CreatureTemplate.Type creatureType)
+        public AbstractCreature SpawnCreature(WorldCoordinate coord, CreatureTemplate.Type creatureType)
         {
-            WorldCoordinate coord = Custom.MakeWorldCoordinate(tile, room.index);
+            AbstractRoom room = game.world.GetAbstractRoom(coord.room);
             AbstractCreature creature = new AbstractCreature(game.world, StaticWorld.GetCreatureTemplate(creatureType), null, coord, game.GetNewID());
             room.AddEntity(creature);
             if (room.realizedRoom != null)
@@ -56,6 +59,12 @@ internal static class RWGameUtils
             game.shortcuts.transportVessels.Clear();
             game.shortcuts.borderTravelVessels.Clear();
             game.shortcuts.betweenRoomsWaitingLobby.Clear();
+
+            if (s_debugVisClearAll == null)
+            {
+                s_debugVisClearAll = typeof(DebugVisualizer.DebugVisualizer).GetMethod("ClearAllSprites", BindingFlags.Instance | BindingFlags.NonPublic);
+            }
+            s_debugVisClearAll.Invoke(DebugVisualizer.DebugVisualizer.Instance, [null]);
         }
 
         public void Update(int times)
@@ -78,6 +87,11 @@ internal static class RWGameUtils
     extension(IntVector2 tile)
     {
         public Vector2 MiddleOfTile => new Vector2(10f + (float)tile.x * 20f, 10f + (float)tile.y * 20f);
+    }
+
+    extension(WorldCoordinate wc)
+    {
+        public Vector2 MiddleOfTile => wc.Tile.MiddleOfTile;
     }
 
     extension(Vector2 pos)

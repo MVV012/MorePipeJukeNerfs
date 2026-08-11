@@ -51,9 +51,9 @@ internal class DebugImGUIWindow
     }
 
     private static int updates = 40;
-    private static CreatureTemplate.Type testedCreature = CreatureTemplate.Type.PinkLizard;
-    private static CreatureTemplate.Type otherCreature = CreatureTemplate.Type.BlueLizard;
-    private static FormatEnums.FormatVerbosity reportVerbosity = FormatEnums.FormatVerbosity.Verbose;
+    private static CreatureTemplate.Type testedCreature = CreatureTemplate.Type.Scavenger;
+    private static CreatureTemplate.Type otherCreature = CreatureTemplate.Type.RedCentipede;
+    private static FormatEnums.FormatVerbosity reportVerbosity = FormatEnums.FormatVerbosity.Compact;
     private static bool assertNoLoggedErrors = true;
     private static void WindowContent()
     {
@@ -69,7 +69,7 @@ internal class DebugImGUIWindow
 
             if (ImGui.Button("Murder everyone"))
             {
-                MouseDrag.Destroy.DestroyRegionObjects(game, creatures: true, items: true);
+                game.MurderEveryone();
             }
 
             ImGui.InputInt("Update count", ref updates);
@@ -99,26 +99,39 @@ internal class DebugImGUIWindow
             ImGUIComponents.EnumPicker("Report verbosity", ref reportVerbosity);
             ImGui.Checkbox("Assert no logged errors", ref assertNoLoggedErrors);
 
-            if (!game.GamePaused)
-            {
-                if (ImGui.Button("Run test"))
-                {
-                    RunOnMainThread(() => {
-                        TestRunner runner = new() { ReportVerbosity = reportVerbosity };
-                        ShortcutTestFactory factory = new()
-                        {
-                            TestedType = testedCreature,
-                            OtherType = otherCreature,
-                        };
-                        ShortcutTestBase.AssertNoLoggedErrors = assertNoLoggedErrors;
-                        runner.RunTests(factory.CreateNormalGroup());
-                    });
-                }
-            }
-            else
+            if (game.GamePaused)
             {
                 ImGui.BeginDisabled();
-                ImGui.Button("Unpause game");
+            }
+
+            if (ImGui.Button("Run all tests"))
+            {
+                RunOnMainThread(() => {
+                    ShortcutTestFactory factory = new()
+                    {
+                        TestedType = testedCreature,
+                        OtherType = otherCreature,
+                    };
+                    ShortcutTestBase.AssertNoLoggedErrors = assertNoLoggedErrors;
+                    TestRunner runner = new() { ReportVerbosity = reportVerbosity };
+                    runner.RunTests(factory.CreateAll());
+                });
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Setup first test"))
+            {
+                RunOnMainThread(() => {
+                    ShortcutTestFactory factory = new()
+                    {
+                        TestedType = testedCreature,
+                        OtherType = otherCreature,
+                    };
+                    factory.CreateAll().AllCases.OfType<ShortcutTestBase>().First().Setup();
+                });
+            }
+
+            if (game.GamePaused)
+            {
                 ImGui.EndDisabled();
             }
 

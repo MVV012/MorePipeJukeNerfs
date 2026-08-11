@@ -2,8 +2,16 @@
 using LogUtils.Diagnostics.Tests;
 using LogUtils.Enums;
 using LogUtils.Events;
+using RWCustom;
 
 namespace MorePipeJukeNerfs.Debug.Tests;
+
+public enum ShortcutTestType
+{
+    NormalShortcut,
+    RealizedToRealized,
+    AbstractToRealized
+}
 
 internal abstract class ShortcutTestBase : TestCase, ITestable
 {
@@ -13,38 +21,99 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
         public required CreatureTemplate.Type OtherType { get; init; }
         public required bool First { get; init; }
         public required bool Seen { get; init; }
+        public required ShortcutTestType Type { get; init; }
     }
 
-    public ShortcutTestInfo Info { get; }
-    public abstract string Region { get; }
-
-    protected RainWorldGame _game = null!; // MemberNotNullWhenAttribute on Setup doesn't work for TestContent :(
+    public record LocationInfoBase(
+        string Region,
+        string PlayerRoomName,
+        WorldCoordinate PlayerCoord,
+        WorldCoordinate TestedSpawn,
+        WorldCoordinate OtherSpawn
+    )
+    {
+        public string[] RealizedRooms { get; init; } = [];
+        public string[] AbstractRooms { get; init; } = [];
+    }
 
     public static bool AssertNoLoggedErrors = true;
 
-    public ShortcutTestBase(ShortcutTestInfo info, string name) : base(name)
+    public ShortcutTestInfo Info { get; }
+    public abstract LocationInfoBase LocationBase { get; }
+
+    protected RainWorldGame Game { get; private set; } = null!; // MemberNotNullWhenAttribute on Setup doesn't work for TestContent :(
+    protected AbstractCreature Tested { get; private set; } = null!;
+    protected AbstractCreature Other { get; private set; } = null!;
+
+    public ShortcutTestBase(ShortcutTestInfo info) : base(GetTestName(info))
     {
         Info = info;
     }
-    public ShortcutTestBase(TestCaseGroup group, ShortcutTestInfo info, string name) : base(group, name)
+    public ShortcutTestBase(TestCaseGroup group, ShortcutTestInfo info) : base(group, GetTestName(info))
     {
         Info = info;
     }
 
     public virtual bool Setup()
     {
-        if (!RWGameUtils.TryGetRWGame(out _game))
+        if (!RWGameUtils.TryGetRWGame(out var rwgame))
         {
             this.Fail("Game is not opened");
             return false;
         }
-        if (_game.world.name != Region)
+        Game = rwgame;
+
+        if (Game.world.region.name != LocationBase.Region || Game.FirstAnyPlayer.Room.name != LocationBase.PlayerRoomName)
         {
-            this.Fail($"Wrong region is loaded (expected: {Region}");
-            return false;
+            WarpModMenu.newRegion = LocationBase.Region;
+            WarpModMenu.newRoom = LocationBase.PlayerRoomName;
+            WarpModMenu.warpActive = true;
+
+            Game.UpdateWhile(() => Game.world.region.name != LocationBase.Region || Game.FirstAnyPlayer.Room.name != LocationBase.PlayerRoomName);
+
+            Log.LogDebug("Successfully warped to testing region/room");
         }
 
-        _game.MurderEveryone();
+        Game.MurderEveryone();
+
+        RoomRealizingRestrictions.RemoveAllRestrictions();
+        foreach (string name in LocationBase.RealizedRooms)
+        {
+            Game.world.GetAbstractRoom(name).RealizeAndRestrict(Game.world, Game);
+        }
+        foreach (string name in LocationBase.AbstractRooms)
+        {
+            Game.world.GetAbstractRoom(name).AbstractizeAndRestrict();
+        }
+
+        Game.FirstAnyPlayer.Move(LocationBase.PlayerCoord);
+        if (Game.FirstRealizedPlayer != null)
+        {
+            foreach (var bodyChunk in Game.FirstRealizedPlayer.bodyChunks)
+            {
+                bodyChunk.HardSetPosition(LocationBase.PlayerCoord.MiddleOfTile);
+            }
+            MouseDrag.Health.ReviveCreature(Game.FirstRealizedPlayer);
+        }
+
+        Tested = Game.SpawnCreature(LocationBase.TestedSpawn, Info.TestedType);
+        Other = Game.SpawnCreature(LocationBase.OtherSpawn, Info.OtherType);
+
+        if (Info.Seen)
+        {
+            Tested.NoticeCreature(Other);
+            Other.NoticeCreature(Tested);
+
+            if (!Tested.TryGetRepresentation(Other, out var rep))
+            {
+                this.Fail("Failed to make tested creature aware of other one");
+                return false;
+            }
+            if (!Other.TryGetRepresentation(Tested, out rep))
+            {
+                this.Fail("Failed to make other creature aware of tested one");
+            }
+        }
 
         return true;
     }
@@ -67,27 +136,44 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
             LogRequestEvents.OnSubmit += logRequestHandler;
         }
 
-        if (!Setup())
+        try
         {
+            if (!Setup())
+            {
+                return;
+            }
+
+            TestContent();
+        }
+        catch(Exception e)
+        {
+            Log.LogError($"Exception during testing: {e}");
+            this.Fail("Exception during testing");
             return;
         }
-
-        TestContent();
+        finally
+        {
+            RoomRealizingRestrictions.RemoveAllRestrictions();
+        }
 
         if (AssertNoLoggedErrors)
         {
-            AssertThat(errorLogged).IsFalse().OnFail($"Exception caught and logged to {LogUtilsLogger.ID.Properties.CurrentFilename}");
+            AssertThat(errorLogged).IsFalse().OnFail($"Exception caught and logged to {Path.GetFileName(LogUtilsLogger.ID.Properties.CurrentFilePath)}");
             LogRequestEvents.OnSubmit -= logRequestHandler;
         }
 
-        _game.MurderEveryone();
+        Game.MurderEveryone();
     }
+
+    public abstract void TestContent();
 
     [PostTest]
     public void ShowResults()
     {
         TestLogger.LogDebug(CreateReport());
     }
-
-    public abstract void TestContent();
+    public static string GetTestName(ShortcutTestInfo info)
+    {
+        return $"{info.TestedType} -> {info.OtherType}, {info.Type}, {(info.First ? "First" : "Second")}, {(info.Seen ? "Seen" : "Unseen")}";
+    }
 }

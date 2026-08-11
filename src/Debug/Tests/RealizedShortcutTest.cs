@@ -1,0 +1,145 @@
+﻿using DevConsole;
+using LogUtils.Diagnostics;
+using LogUtils.Diagnostics.Tests;
+using RWCustom;
+
+namespace MorePipeJukeNerfs.Debug.Tests;
+
+internal class RealizedShortcutTest : ShortcutTestBase
+{
+    internal record LocationInfo(
+        string Region,
+        string PlayerRoomName,
+        WorldCoordinate PlayerCoord,
+        WorldCoordinate TestedSpawn,
+        WorldCoordinate OtherSpawn,
+        IntVector2 TestedShortcut,
+        IntVector2 OtherShortcut,
+        int EnteringDelay
+    ) : LocationInfoBase(Region, PlayerRoomName, PlayerCoord, TestedSpawn, OtherSpawn)
+    {
+        public static LocationInfo CC_A02 => new LocationInfo(
+            Region: "CC",
+            PlayerRoomName: "CC_A02",
+            PlayerCoord: new WorldCoordinate(25, 25, 6, -1),
+            TestedSpawn: new WorldCoordinate(25, 28, 18, -1),
+            TestedShortcut: new IntVector2(31, 15),
+            OtherSpawn: new WorldCoordinate(25, 36, 5, -1),
+            OtherShortcut: new IntVector2(38, 3),
+            EnteringDelay: 20
+        )
+        {
+            RealizedRooms = ["CC_A02"]
+        };
+
+        public static LocationInfo CC_A02_to_CC_A12 => new LocationInfo(
+            Region: "CC",
+            PlayerRoomName: "CC_A02",
+            PlayerCoord: new WorldCoordinate(25, 3, 27, -1),
+            TestedSpawn: new WorldCoordinate(25, 6, 11, -1),
+            TestedShortcut: new IntVector2(3, 11),
+            OtherSpawn: new WorldCoordinate(23, 33, 18, -1),
+            OtherShortcut: new IntVector2(36, 18),
+            EnteringDelay: 20
+        )
+        {
+            RealizedRooms = ["CC_A02", "CC_A12"]
+        };
+
+        public static LocationInfo GetLocation(ShortcutTestType type)
+        {
+            return type switch
+            {
+                ShortcutTestType.NormalShortcut => CC_A02,
+                ShortcutTestType.RealizedToRealized => CC_A02_to_CC_A12,
+                _ => throw new ArgumentException("Wrong shortcut test type")
+            };
+        }
+    };
+
+    public LocationInfo Location { get; }
+    public override LocationInfoBase LocationBase => Location;
+
+    public RealizedShortcutTest(ShortcutTestInfo info, LocationInfo location) : base(info)
+    {
+        Location = location;
+    }
+    public RealizedShortcutTest(TestCaseGroup group, ShortcutTestInfo info, LocationInfo location) : base(group, info)
+    {
+        Location = location;
+    }
+
+    public override bool Setup()
+    {
+        if (!base.Setup())
+        {
+            return false;
+        }
+
+        if (Info.First)
+            Tested.realizedCreature.SuckedIntoShortCut(Location.TestedShortcut, false);
+        else
+            Other.realizedCreature.SuckedIntoShortCut(Location.OtherShortcut, false);
+
+        Game.Update(Location.EnteringDelay);
+
+        if (Info.First)
+            Other.realizedCreature.SuckedIntoShortCut(Location.OtherShortcut, false);
+        else
+            Tested.realizedCreature.SuckedIntoShortCut(Location.TestedShortcut, false);
+
+        return true;
+    }
+
+    public override void TestContent()
+    {
+        try
+        {
+            Game.UpdateWhile(() => Tested.realizedCreature.inShortcut);
+        }
+        catch (Exception e)
+        {
+            this.Fail($"Unhandled exception: {e}");
+            return;
+        }
+
+        bool creatureNoticed = Tested.TryGetRepresentation(Other, out var rep);
+        AssertThat(creatureNoticed).IsTrue().OnFail("Creature is not noticed"); // 0
+        if (!creatureNoticed) return;
+
+        AssertThat(rep.lastSeenCoord).IsInRoom(Location.TestedSpawn.room); // 1
+        AssertThat(rep.lastSeenCoord.Tile).IsSameOrNextTo(Location.TestedShortcut); // 2
+
+        if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
+        {
+            AssertThat(elabRep.ghosts.Count).IsEqualTo(1); // 3
+
+            Tracker.Ghost ghost = elabRep.ghosts[0];
+            AssertThat(ghost.coord).IsInRoom(Location.TestedSpawn.room); // 4
+            AssertThat(ghost.coord.Tile).IsSameOrNextTo(rep.lastSeenCoord.Tile); // 5
+            AssertThat(ghost.pos.TilePosition).IsSameOrNextTo(rep.lastSeenCoord.Tile); // 6
+
+            if (Info.First)
+            {
+                AssertThat(ghost.stopped).IsTrue(); // 7
+                AssertThat(ghost.Pushable).IsFalse(); // 8
+            }
+            else
+            {
+                AssertThat(ghost.Pushable).IsTrue(); // 7
+            }
+        }
+
+        if (rep.dynamicRelationship?.currentRelationship != null)
+        {
+            AssertThat(rep.dynamicRelationship.currentRelationship.type).DoesNotEqual(CreatureTemplate.Relationship.Type.SocialDependent); // 8/9
+        }
+    }
+
+    public static RealizedShortcutTest Create(ShortcutTestInfo info, LocationInfo location, TestCaseGroup? group = null)
+    {
+        return group == null
+            ? new RealizedShortcutTest(info, location)
+            : new RealizedShortcutTest(group, info, location);
+    }
+}
