@@ -87,7 +87,7 @@ internal static class TestUtils
             cond.Pass();
             return;
         }
-        cond.Fail($"World coordinate is in wrong room. Expected: {roomIndex}, Got: {cond.Value}");
+        cond.Fail($"World coordinate is in wrong room. Expected: {roomIndex}, Got: {cond.Value.room}");
     }
 
     extension(Condition<IntVector2> cond)

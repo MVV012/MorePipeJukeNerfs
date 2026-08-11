@@ -1,5 +1,4 @@
-﻿using DevConsole;
-using LogUtils.Diagnostics;
+﻿using LogUtils.Diagnostics;
 using LogUtils.Diagnostics.Tests;
 using RWCustom;
 
@@ -18,7 +17,7 @@ internal class RealizedShortcutTest : ShortcutTestBase
         int EnteringDelay
     ) : LocationInfoBase(Region, PlayerRoomName, PlayerCoord, TestedSpawn, OtherSpawn)
     {
-        public static LocationInfo CC_A02 => new LocationInfo(
+        public static LocationInfo CC_A02 { get; } = new LocationInfo(
             Region: "CC",
             PlayerRoomName: "CC_A02",
             PlayerCoord: new WorldCoordinate(25, 25, 6, -1),
@@ -32,7 +31,7 @@ internal class RealizedShortcutTest : ShortcutTestBase
             RealizedRooms = ["CC_A02"]
         };
 
-        public static LocationInfo CC_A02_to_CC_A12 => new LocationInfo(
+        public static LocationInfo CC_A02_to_CC_A12 { get; } = new LocationInfo(
             Region: "CC",
             PlayerRoomName: "CC_A02",
             PlayerCoord: new WorldCoordinate(25, 3, 27, -1),

@@ -140,6 +140,7 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
         {
             if (!Setup())
             {
+                Game.MurderEveryone();
                 return;
             }
 

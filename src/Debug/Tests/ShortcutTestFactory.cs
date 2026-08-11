@@ -13,6 +13,7 @@ internal class ShortcutTestFactory
 
         CreateGroup(ShortcutTestType.NormalShortcut, newGroup);
         CreateGroup(ShortcutTestType.RealizedToRealized, newGroup);
+        CreateGroup(ShortcutTestType.AbstractToRealized, newGroup);
 
         return newGroup;
     }
@@ -23,26 +24,37 @@ internal class ShortcutTestFactory
 
         CreateTest(type, first: true, seen: false, newGroup);
         CreateTest(type, first: false, seen: false, newGroup);
-        CreateTest(type, first: true, seen: true, newGroup);
-        CreateTest(type, first: false, seen: true, newGroup);
+        if (type != ShortcutTestType.AbstractToRealized)
+        {
+            CreateTest(type, first: true, seen: true, newGroup);
+            CreateTest(type, first: false, seen: true, newGroup);
+        }
 
         return newGroup;
     }
 
     public ShortcutTestBase CreateTest(ShortcutTestType type, bool first = true, bool seen = false, TestCaseGroup? group = null)
     {
+        ShortcutTestBase.ShortcutTestInfo info = new ShortcutTestBase.ShortcutTestInfo() {
+            Type = type,
+            TestedType = TestedType,
+            OtherType = OtherType,
+            First = first,
+            Seen = seen
+        };
+
         return type switch
         {
-            ShortcutTestType.NormalShortcut or ShortcutTestType.RealizedToRealized => RealizedShortcutTest.Create(new ShortcutTestBase.ShortcutTestInfo()
-            {
-                Type = type,
-                TestedType = TestedType,
-                OtherType = OtherType,
-                First = first,
-                Seen = seen
-            }, RealizedShortcutTest.LocationInfo.GetLocation(type), group),
-
-            ShortcutTestType.AbstractToRealized => throw new NotImplementedException(),
+            ShortcutTestType.NormalShortcut or ShortcutTestType.RealizedToRealized => RealizedShortcutTest.Create(
+                info,
+                RealizedShortcutTest.LocationInfo.GetLocation(type),
+                group
+            ),
+            ShortcutTestType.AbstractToRealized => AbstractToRealizedTest.Create(
+                info,
+                AbstractToRealizedTest.LocationInfo.GetLocation(),
+                group
+            ),
             _ => throw new Exception("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         };
     }

@@ -28,12 +28,14 @@ internal static class RoomRealizingRestrictions
 
         public void AbstractizeAndRestrict()
         {
+            room.KeepRealized = false;
             room.Abstractize();
             room.KeepAbstract = true;
         }
 
         public void RealizeAndRestrict(World world, RainWorldGame game)
         {
+            room.KeepAbstract = false;
             room.RealizeRoom(world, game);
             room.KeepRealized = true;
         }
