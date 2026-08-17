@@ -18,7 +18,7 @@ sealed public class Plugin : BaseUnityPlugin
 {
     public const string GUID = "mvv012.morepipejukenerfs";
     public const string NAME = "More Pipe Juke Nerfs";
-    public const string VERSION = "0.4.1";
+    public const string VERSION = "0.5.0";
 
     private bool _isInit = false;
     internal static bool DebugWindowEnabled = false;
