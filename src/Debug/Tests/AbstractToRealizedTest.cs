@@ -1,4 +1,4 @@
-﻿using LogUtils.Diagnostics;
+using LogUtils.Diagnostics;
 using LogUtils.Diagnostics.Tests;
 using RWCustom;
 
@@ -25,7 +25,7 @@ internal class AbstractToRealizedTest : ShortcutTestBase
             OtherSpawn: new WorldCoordinate(25, 43, 12, -1),
             TestedEnterCoord: new WorldCoordinate(25, 44, 12, 0),
             OtherShortcut: new IntVector2(48, 12),
-            EnteringDelay: 5
+            EnteringDelay: 8
         )
         {
             AbstractRooms = ["CC_C08"],
