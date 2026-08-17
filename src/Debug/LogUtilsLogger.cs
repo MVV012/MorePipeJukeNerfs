@@ -1,4 +1,4 @@
-﻿global using static MorePipeJukeNerfs.Debug.LogUtilsLogger.Global;
+global using static MorePipeJukeNerfs.Debug.LogUtilsLogger.Global;
 
 using LogUtils;
 using LogUtils.Enums;
@@ -28,11 +28,6 @@ internal static class LogUtilsLogger
     public static void OnDisable()
     {
         ID.Unregister();
-    }
-
-    public static void Log(BepInEx.Logging.LogLevel level, object data)
-    {
-        Global.Log.Log(level, data);
     }
 
     public static void RemoveIntoOutroMessages(LogID logID)

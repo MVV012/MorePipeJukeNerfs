@@ -1,4 +1,4 @@
-﻿global using static MorePipeJukeNerfs.LogWrapper.Global;
+global using static MorePipeJukeNerfs.LogWrapper.Global;
 
 using BepInEx.Logging;
 using System.Diagnostics;
@@ -35,13 +35,12 @@ internal static class LogWrapper
         BepInExLogger = bepInExLogger;
 
 #if DEBUG
-        LogUtilsUsed = AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.Contains("LogUtils"));
+        LogUtilsUsed = AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.Equals("LogUtils", StringComparison.OrdinalIgnoreCase));
 
         if (LogUtilsUsed)
         {
-            Debug.LogUtilsLogger.OnEnable();
-
-            BepInExLogger.LogInfo($"LogUtils loaded, logging into {Debug.LogUtilsLogger.ID.Properties.CurrentFilePath}");
+            LogUtilsLoggerOnEnable();
+            BepInExLogger.LogInfo($"LogUtils loaded, logging into {LogUtilsLoggerGetFilePath()}");
         }
 #endif
     }
@@ -51,7 +50,7 @@ internal static class LogWrapper
 #if DEBUG
         if (LogUtilsUsed)
         {
-            Debug.LogUtilsLogger.OnDisable();
+            LogUtilsLoggerOnDisable();
         }
 #endif
     }
@@ -61,10 +60,15 @@ internal static class LogWrapper
 #if DEBUG
         if (LogUtilsUsed)
         {
-            Debug.LogUtilsLogger.Log(level, data);
+            LogUtilsLoggerLog(level, data);
             return;
         }
 #endif
         BepInExLogger.Log(level, data);
     }
+
+    private static void LogUtilsLoggerOnEnable() => Debug.LogUtilsLogger.OnEnable();
+    private static void LogUtilsLoggerOnDisable() => Debug.LogUtilsLogger.OnDisable();
+    private static void LogUtilsLoggerLog(LogLevel level, object data) => Debug.LogUtilsLogger.Global.Log.Log(level, data);
+    private static string LogUtilsLoggerGetFilePath() => Debug.LogUtilsLogger.ID.Properties.CurrentFilePath;
 }
