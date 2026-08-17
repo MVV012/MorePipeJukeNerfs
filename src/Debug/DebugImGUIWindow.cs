@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using LogUtils;
 using LogUtils.Enums;
 using LogUtils.Helpers;

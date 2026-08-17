@@ -1,4 +1,4 @@
-﻿using LogUtils.Diagnostics;
+using LogUtils.Diagnostics;
 using LogUtils.Diagnostics.Tests;
 using LogUtils.Enums;
 using LogUtils.Events;

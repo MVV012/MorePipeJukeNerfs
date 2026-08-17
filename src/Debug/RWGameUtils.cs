@@ -1,4 +1,4 @@
-﻿using RWCustom;
+using RWCustom;
 using System.Reflection;
 using UnityEngine;
 

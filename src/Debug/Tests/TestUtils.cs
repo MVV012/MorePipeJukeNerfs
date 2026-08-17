@@ -1,4 +1,4 @@
-﻿using RWCustom;
+using RWCustom;
 using LogUtils.Diagnostics;
 using LogUtils.Diagnostics.Tests;
 using System.Reflection;

@@ -1,4 +1,4 @@
-﻿using LogUtils.Diagnostics.Tests;
+using LogUtils.Diagnostics.Tests;
 
 namespace MorePipeJukeNerfs.Debug.Tests;
 

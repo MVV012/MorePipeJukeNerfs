@@ -1,4 +1,4 @@
-﻿using Menu.Remix.MixedUI;
+using Menu.Remix.MixedUI;
 
 namespace MorePipeJukeNerfs.Remix;
 

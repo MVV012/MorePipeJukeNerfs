@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
 
