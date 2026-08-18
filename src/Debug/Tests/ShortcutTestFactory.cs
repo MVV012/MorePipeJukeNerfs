@@ -4,6 +4,8 @@ namespace MorePipeJukeNerfs.Debug.Tests;
 
 internal class ShortcutTestFactory(CreatureTemplate.Type TestedType, CreatureTemplate.Type OtherType)
 {
+    public ShortcutTestLocationGroup TestGroup { get; init; } = ShortcutTestLocationGroup.CC;
+
     public TestableGroup CreateAll(TestCaseGroup? group = null)
     {
         TestableGroup newGroup = TestableGroup.Create($"{TestedType} -> {OtherType}", group);
@@ -44,24 +46,24 @@ internal class ShortcutTestFactory(CreatureTemplate.Type TestedType, CreatureTem
         {
             ShortcutTestType.NormalShortcut or ShortcutTestType.RealizedToRealized => RealizedShortcutTest.Create(
                 info,
-                RealizedShortcutTest.LocationInfo.GetLocation(type),
+                RealizedShortcutTest.LocationInfo.GetLocation(TestGroup, type),
                 group
             ),
             ShortcutTestType.AbstractToRealized => AbstractToRealizedTest.Create(
                 info,
-                AbstractToRealizedTest.LocationInfo.GetLocation(OtherType),
+                AbstractToRealizedTest.LocationInfo.GetLocation(TestGroup, OtherType),
                 group
             ),
             _ => throw new Exception("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         };
     }
 
-    public static TestableGroup CreateAllTestsForPair(CreatureTemplate.Type first, CreatureTemplate.Type second, TestCaseGroup? group = null)
+    public TestableGroup CreateAllTestsForPair(TestCaseGroup? group = null)
     {
-        TestableGroup newGroup = TestableGroup.Create($"{first} <-> {second}", group);
+        TestableGroup newGroup = TestableGroup.Create($"{TestedType} <-> {OtherType}", group);
 
-        new ShortcutTestFactory(first, second).CreateAll(newGroup);
-        new ShortcutTestFactory(second, first).CreateAll(newGroup);
+        CreateAll(newGroup);
+        new ShortcutTestFactory(OtherType, TestedType) { TestGroup = TestGroup }.CreateAll(newGroup);
 
         return newGroup;
     }

@@ -13,6 +13,12 @@ public enum ShortcutTestType
     AbstractToRealized
 }
 
+public enum ShortcutTestLocationGroup
+{
+    CC,
+    MPJNTST
+}
+
 internal abstract class ShortcutTestBase : TestCase, ITestable
 {
     public struct ShortcutTestInfo

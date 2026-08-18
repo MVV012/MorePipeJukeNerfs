@@ -35,14 +35,12 @@ internal class TestRunner
 
         LogFile.StartNewSession(TestLogID);
 
-        AssertHandler assertHandler = new AssertHandler(TestLogger);
-        assertHandler.Behavior = AssertBehavior.DoNothing;
+        AssertHandler assertHandler = new AssertHandler(TestLogger) { Behavior = AssertBehavior.DoNothing };
 
         TestCasePolicy.ReportVerbosity = ReportVerbosity;
         ShortcutTestBase.AssertNoLoggedErrors = AssertNoLoggedErrors;
 
-        TestSuite testSuite = new TestSuite();
-        testSuite.Handler = assertHandler;
+        TestSuite testSuite = new TestSuite { Handler = assertHandler };
 
         foreach (ITestable test in tests)
         {

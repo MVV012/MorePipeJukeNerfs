@@ -45,13 +45,43 @@ internal class RealizedShortcutTest : ShortcutTestBase
             RealizedRooms = ["CC_A02", "CC_A12"]
         };
 
-        public static LocationInfo GetLocation(ShortcutTestType type)
+        public static LocationInfo MPJNTST_A01 { get; } = new LocationInfo(
+            Region: "MPJNTST",
+            PlayerRoomName: "MPJNTST_A01",
+            PlayerCoord: new WorldCoordinate(871, 4, 10, -1),
+            TestedSpawn: new WorldCoordinate(871, 3, 4, -1),
+            TestedShortcut: new IntVector2(4, 1),
+            OtherSpawn: new WorldCoordinate(871, 10, 4, -1),
+            OtherShortcut: new IntVector2(8, 1),
+            EnteringDelay: 6
+        )
         {
-            return type switch
+            RealizedRooms = ["MPJNTST_A01"]
+        };
+
+        public static LocationInfo MPJNTST_A02_to_A01 { get; } = new LocationInfo(
+            Region: "MPJNTST",
+            PlayerRoomName: "MPJNTST_A01",
+            PlayerCoord: new WorldCoordinate(871, 4, 10, -1),
+            TestedSpawn: new WorldCoordinate(872, 6, 2, -1),
+            TestedShortcut: new IntVector2(2, 2),
+            OtherSpawn: new WorldCoordinate(871, 10, 4, -1),
+            OtherShortcut: new IntVector2(15, 4),
+            EnteringDelay: 10
+        )
+        {
+            RealizedRooms = ["MPJNTST_A02", "MPJNTST_A01"]
+        };
+
+        public static LocationInfo GetLocation(ShortcutTestLocationGroup testGroup, ShortcutTestType type)
+        {
+            return (testGroup, type) switch
             {
-                ShortcutTestType.NormalShortcut => CC_A02,
-                ShortcutTestType.RealizedToRealized => CC_A02_to_CC_A12,
-                _ => throw new ArgumentException("Wrong shortcut test type")
+                (ShortcutTestLocationGroup.CC, ShortcutTestType.NormalShortcut) => CC_A02,
+                (ShortcutTestLocationGroup.CC, ShortcutTestType.RealizedToRealized) => CC_A02_to_CC_A12,
+                (ShortcutTestLocationGroup.MPJNTST, ShortcutTestType.NormalShortcut) => MPJNTST_A01,
+                (ShortcutTestLocationGroup.MPJNTST, ShortcutTestType.RealizedToRealized) => MPJNTST_A02_to_A01,
+                _ => throw new ArgumentException("Invalid test group or shortcut type"),
             };
         }
     };

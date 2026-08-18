@@ -47,16 +47,30 @@ internal class AbstractToRealizedTest : ShortcutTestBase
             RealizedRooms = ["CC_A12"]
         };
 
-        public static LocationInfo GetLocation(CreatureTemplate.Type otherType)
+        public static LocationInfo MPJNTST_A02_to_A01 { get; } = new LocationInfo(
+            Region: "MPJNTST",
+            PlayerRoomName: "MPJNTST_A01",
+            PlayerCoord: new WorldCoordinate(871, 4, 10, -1),
+            TestedSpawn: new WorldCoordinate(872, 6, 2, -1),
+            OtherSpawn: new WorldCoordinate(871, 10, 4, -1),
+            TestedEnterCoord: new WorldCoordinate(871, 12, 4, 0),
+            OtherShortcut: new IntVector2(15, 4),
+            EnteringDelay: 10
+        )
         {
-            if (otherType == CreatureTemplate.Type.Slugcat)
+            AbstractRooms = ["MPJNTST_A02"],
+            RealizedRooms = ["MPJNTST_A01"]
+        };
+
+        public static LocationInfo GetLocation(ShortcutTestLocationGroup testGroup, CreatureTemplate.Type otherType)
+        {
+            return (testGroup, otherType.value) switch
             {
-                return CC_A02_to_CC_A12;
-            }
-            else
-            {
-                return CC_C08_to_CC_A02;
-            }
+                (ShortcutTestLocationGroup.CC, "Slugcat") => CC_A02_to_CC_A12,
+                (ShortcutTestLocationGroup.CC, _) => CC_C08_to_CC_A02,
+                (ShortcutTestLocationGroup.MPJNTST, _) => MPJNTST_A02_to_A01,
+                _ => throw new ArgumentException("Invalid test group or shortcut type"),
+            };
         }
     };
 

@@ -60,6 +60,7 @@ internal class DebugImGUIWindow
     private static ShortcutTestType testType = ShortcutTestType.NormalShortcut;
     private static FormatEnums.FormatVerbosity reportVerbosity = FormatEnums.FormatVerbosity.Compact;
     private static bool assertNoLoggedErrors = true;
+    private static ShortcutTestLocationGroup testGroup = ShortcutTestLocationGroup.CC;
     private static void WindowContent()
     {
         if (!RWGameUtils.TryGetRWGame(out RainWorldGame game))
@@ -105,6 +106,10 @@ internal class DebugImGUIWindow
         {
             ImGui.Unindent();
 
+            ImGUIComponents.EnumPicker("Location", ref testGroup);
+
+            ImGui.Separator();
+
             ImGUIComponents.CreatureTemplatePicker("Tested creature", ref testedCreature);
             ImGUIComponents.CreatureTemplatePicker("Other creature", ref otherCreature, withSlugcat: true);
             ImGUIComponents.EnumPicker("Test type", ref testType);
@@ -124,7 +129,7 @@ internal class DebugImGUIWindow
             if (ImGui.Button("Run test"))
             {
                 RunOnMainThread(() => {
-                    ShortcutTestFactory factory = new(testedCreature, otherCreature);
+                    ShortcutTestFactory factory = new(testedCreature, otherCreature) { TestGroup = testGroup };
                     TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
                     runner.RunTests(factory.CreateTest(testType, first, seen));
                 });
@@ -133,7 +138,7 @@ internal class DebugImGUIWindow
             if (ImGui.Button("Run all tests"))
             {
                 RunOnMainThread(() => {
-                    ShortcutTestFactory factory = new(testedCreature, otherCreature);
+                    ShortcutTestFactory factory = new(testedCreature, otherCreature) { TestGroup = testGroup };
                     TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
                     runner.RunTests(factory.CreateAll());
                 });
@@ -146,8 +151,9 @@ internal class DebugImGUIWindow
             if (ImGui.Button("Run all tests for pair"))
             {
                 RunOnMainThread(() => {
+                    ShortcutTestFactory factory = new(testedCreature, otherCreature) { TestGroup = testGroup };
                     TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
-                    runner.RunTests(ShortcutTestFactory.CreateAllTestsForPair(testedCreature, otherCreature));
+                    runner.RunTests(factory.CreateAllTestsForPair());
                 });
             }
 
@@ -157,7 +163,7 @@ internal class DebugImGUIWindow
             if (ImGui.Button("Setup test"))
             {
                 RunOnMainThread(() => {
-                    ShortcutTestFactory factory = new(testedCreature, otherCreature);
+                    ShortcutTestFactory factory = new(testedCreature, otherCreature) { TestGroup = testGroup };
                     factory.CreateTest(testType, first, seen).Setup();
                 });
             }
