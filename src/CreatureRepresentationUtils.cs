@@ -28,7 +28,8 @@ public static class CreatureRepresentationUtils
         /// <param name="room">Abstract room of shortcut entrance</param>
         /// <param name="coord">World coordinate of shortcut entrance</param>
         /// <param name="pause">Should ghost be paused</param>
-        public void MoveToShortcutEntrance(AbstractRoom room, WorldCoordinate coord, bool pause = false)
+        /// <param name="setForbiddenRoomExit">Should ghost's forbidden room exit be set to shortcut entrance</param>
+        public void MoveToShortcutEntrance(AbstractRoom room, WorldCoordinate coord, bool pause = false, bool setForbiddenRoomExit = false)
         {
             if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
             {
@@ -55,6 +56,14 @@ public static class CreatureRepresentationUtils
                 if (pause)
                 {
                     ghost.Pause();
+                }
+                if (setForbiddenRoomExit)
+                {
+                    ghost.forbiddenRoomExit = coord;
+                }
+                else
+                {
+                    ghost.forbiddenRoomExit = default;
                 }
                 // Copied from Room.MiddleOfTile (why there is no static variant?)
                 ghost.pos = new Vector2(10f + (float)ghost.coord.x * 20f, 10f + (float)ghost.coord.y * 20f);
