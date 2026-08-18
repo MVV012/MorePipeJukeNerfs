@@ -101,6 +101,8 @@ sealed public class Plugin : BaseUnityPlugin
         {
             Debug.DebugImGUIWindow.OnEnable();
             Debug.Tests.RoomRealizingRestrictions.ApplyHooks();
+            Debug.Tests.PlayerGraphicsInitiateSpritesFix.ApplyHooks();
+
             DebugWindowEnabled = true;
         }
     }

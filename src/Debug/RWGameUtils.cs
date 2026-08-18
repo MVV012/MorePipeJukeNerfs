@@ -56,9 +56,9 @@ internal static class RWGameUtils
         public void MurderEveryone()
         {
             MouseDrag.Destroy.DestroyRegionObjects(game, creatures: true, items: true);
-            game.shortcuts.transportVessels.Clear();
-            game.shortcuts.borderTravelVessels.Clear();
-            game.shortcuts.betweenRoomsWaitingLobby.Clear();
+            game.shortcuts.transportVessels = game.shortcuts.transportVessels.Where(vessel => vessel.creature is Player { isNPC: false }).ToList();
+            game.shortcuts.borderTravelVessels = game.shortcuts.borderTravelVessels.Where(vessel => vessel.creature is Player { isNPC: false }).ToList();
+            game.shortcuts.betweenRoomsWaitingLobby = game.shortcuts.betweenRoomsWaitingLobby.Where(vessel => vessel.creature is Player { isNPC: false }).ToList();
 
             if (s_debugVisClearAll == null)
             {

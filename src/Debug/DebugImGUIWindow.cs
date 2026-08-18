@@ -1,5 +1,6 @@
 using ImGuiNET;
 using LogUtils;
+using LogUtils.Diagnostics;
 using LogUtils.Enums;
 using LogUtils.Helpers;
 using MonoMod.RuntimeDetour;
@@ -7,6 +8,7 @@ using MorePipeJukeNerfs.Debug.Tests;
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
 using RWIMGUI.API;
+using System.Diagnostics;
 
 namespace MorePipeJukeNerfs.Debug;
 
@@ -53,6 +55,9 @@ internal class DebugImGUIWindow
     private static int updates = 40;
     private static CreatureTemplate.Type testedCreature = CreatureTemplate.Type.Scavenger;
     private static CreatureTemplate.Type otherCreature = CreatureTemplate.Type.RedCentipede;
+    private static bool first = true;
+    private static bool seen = false;
+    private static ShortcutTestType testType = ShortcutTestType.NormalShortcut;
     private static FormatEnums.FormatVerbosity reportVerbosity = FormatEnums.FormatVerbosity.Compact;
     private static bool assertNoLoggedErrors = true;
     private static void WindowContent()
@@ -71,16 +76,25 @@ internal class DebugImGUIWindow
             {
                 game.MurderEveryone();
             }
-
-            ImGui.InputInt("Update count", ref updates);
-            if (ImGui.Button($"Update game {updates} times###update_button"))
-            {
-                RunOnMainThread(() => game.Update(updates));
-            }
-
+            ImGui.SameLine();
             if (ImGui.Button("Clear log"))
             {
                 LogFile.StartNewSession(LogUtilsLogger.ID);
+            }
+
+            ImGui.SetNextItemWidth(215);
+            ImGui.InputInt("##Update count", ref updates);
+            ImGui.SameLine();
+            if (ImGui.Button($"Update game {updates} times###update_button"))
+            {
+                RunOnMainThread(() =>
+                {
+                    Log.LogDebug($"Running {updates} RainWorldGame updates in {game.FirstAnyPlayer.Room.name}");
+                    using (new Stopwatch().BeginScope(Log))
+                    {
+                        game.Update(updates);
+                    }
+                });
             }
 
             ImGui.Indent();
@@ -92,47 +106,71 @@ internal class DebugImGUIWindow
             ImGui.Unindent();
 
             ImGUIComponents.CreatureTemplatePicker("Tested creature", ref testedCreature);
-            ImGUIComponents.CreatureTemplatePicker("Other creature", ref otherCreature);
+            ImGUIComponents.CreatureTemplatePicker("Other creature", ref otherCreature, withSlugcat: true);
+            ImGUIComponents.EnumPicker("Test type", ref testType);
+            ImGui.Checkbox("First", ref first);
+            ImGui.Checkbox("Seen", ref seen);
 
             ImGui.Separator();
 
             ImGUIComponents.EnumPicker("Report verbosity", ref reportVerbosity);
             ImGui.Checkbox("Assert no logged errors", ref assertNoLoggedErrors);
 
-            if (game.GamePaused)
+            if (game.GamePaused || game.FirstAnyPlayer.realizedCreature == null || game.FirstRealizedPlayer.inShortcut)
             {
                 ImGui.BeginDisabled();
             }
 
-            if (ImGui.Button("Run all tests"))
+            if (ImGui.Button("Run test"))
             {
                 RunOnMainThread(() => {
-                    ShortcutTestFactory factory = new()
-                    {
-                        TestedType = testedCreature,
-                        OtherType = otherCreature,
-                    };
-                    ShortcutTestBase.AssertNoLoggedErrors = assertNoLoggedErrors;
-                    TestRunner runner = new() { ReportVerbosity = reportVerbosity };
-                    runner.RunTests(factory.CreateAll());
+                    ShortcutTestFactory factory = new(testedCreature, otherCreature);
+                    TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
+                    runner.RunTests(factory.CreateTest(testType, first, seen));
                 });
             }
             ImGui.SameLine();
-            if (ImGui.Button("Setup first test"))
+            if (ImGui.Button("Run all tests"))
             {
                 RunOnMainThread(() => {
-                    ShortcutTestFactory factory = new()
-                    {
-                        TestedType = testedCreature,
-                        OtherType = otherCreature,
-                    };
-                    factory.CreateAll().AllCases.OfType<ShortcutTestBase>().First().Setup();
+                    ShortcutTestFactory factory = new(testedCreature, otherCreature);
+                    TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
+                    runner.RunTests(factory.CreateAll());
                 });
             }
 
-            if (game.GamePaused)
+            ImGui.SameLine();
+            if (otherCreature == CreatureTemplate.Type.Slugcat)
+                ImGui.BeginDisabled();
+
+            if (ImGui.Button("Run all tests for pair"))
+            {
+                RunOnMainThread(() => {
+                    TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
+                    runner.RunTests(ShortcutTestFactory.CreateAllTestsForPair(testedCreature, otherCreature));
+                });
+            }
+
+            if (otherCreature == CreatureTemplate.Type.Slugcat)
+                ImGui.EndDisabled();
+
+            if (ImGui.Button("Setup test"))
+            {
+                RunOnMainThread(() => {
+                    ShortcutTestFactory factory = new(testedCreature, otherCreature);
+                    factory.CreateTest(testType, first, seen).Setup();
+                });
+            }
+
+            if (game.GamePaused || game.FirstAnyPlayer.realizedCreature == null || game.FirstRealizedPlayer.inShortcut)
             {
                 ImGui.EndDisabled();
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Reset realizing restrictions"))
+            {
+                RoomRealizingRestrictions.RemoveAllRestrictions();
             }
 
             ImGui.Indent();

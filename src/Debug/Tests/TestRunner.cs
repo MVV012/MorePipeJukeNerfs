@@ -4,12 +4,14 @@ using LogUtils.Diagnostics.Tests;
 using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Policy;
+using System.Diagnostics;
 
 namespace MorePipeJukeNerfs.Debug.Tests;
 
 internal class TestRunner
 {
     public FormatEnums.FormatVerbosity ReportVerbosity { get; set; } = FormatEnums.FormatVerbosity.Verbose;
+    public bool AssertNoLoggedErrors { get; set; } = true;
 
     public static bool IsInit = false;
     public static LogID TestLogID = null!;
@@ -37,6 +39,7 @@ internal class TestRunner
         assertHandler.Behavior = AssertBehavior.DoNothing;
 
         TestCasePolicy.ReportVerbosity = ReportVerbosity;
+        ShortcutTestBase.AssertNoLoggedErrors = AssertNoLoggedErrors;
 
         TestSuite testSuite = new TestSuite();
         testSuite.Handler = assertHandler;
@@ -47,7 +50,10 @@ internal class TestRunner
         }
 
         CombinedLogger.LogDebug(GetLogMessage(tests));
-        testSuite.RunAllTests();
+        using (new Stopwatch().BeginScope(CombinedLogger))
+        {
+            testSuite.RunAllTests();
+        }
     }
 
     public static string GetLogMessage(params ITestable[] tests)
@@ -56,7 +62,7 @@ internal class TestRunner
             TestCase @case => @case.Name,
             _ => "Unnamed test"
         }));
-        int limit = 50;
+        int limit = 80;
         if (testNames.Length > limit) testNames = testNames[..limit] + "...";
         return $"Starting {tests.Length} testable{(tests.Length == 1 ? "" : "s")}: {testNames}";
     }

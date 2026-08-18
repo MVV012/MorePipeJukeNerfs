@@ -2,11 +2,8 @@ using LogUtils.Diagnostics.Tests;
 
 namespace MorePipeJukeNerfs.Debug.Tests;
 
-internal class ShortcutTestFactory
+internal class ShortcutTestFactory(CreatureTemplate.Type TestedType, CreatureTemplate.Type OtherType)
 {
-    public required CreatureTemplate.Type TestedType { get; set; }
-    public required CreatureTemplate.Type OtherType { get; set; }
-
     public TestableGroup CreateAll(TestCaseGroup? group = null)
     {
         TestableGroup newGroup = TestableGroup.Create($"{TestedType} -> {OtherType}", group);
@@ -52,10 +49,20 @@ internal class ShortcutTestFactory
             ),
             ShortcutTestType.AbstractToRealized => AbstractToRealizedTest.Create(
                 info,
-                AbstractToRealizedTest.LocationInfo.GetLocation(),
+                AbstractToRealizedTest.LocationInfo.GetLocation(OtherType),
                 group
             ),
             _ => throw new Exception("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         };
+    }
+
+    public static TestableGroup CreateAllTestsForPair(CreatureTemplate.Type first, CreatureTemplate.Type second, TestCaseGroup? group = null)
+    {
+        TestableGroup newGroup = TestableGroup.Create($"{first} <-> {second}", group);
+
+        new ShortcutTestFactory(first, second).CreateAll(newGroup);
+        new ShortcutTestFactory(second, first).CreateAll(newGroup);
+
+        return newGroup;
     }
 }

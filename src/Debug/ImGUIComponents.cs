@@ -1,4 +1,5 @@
 using ImGuiNET;
+using LogUtils.Formatting;
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
 
@@ -59,15 +60,26 @@ internal static class ImGUIComponents
         }
     }
 
-    private static string[]? allTemplateNames;
-    public static void CreatureTemplatePicker(string label, ref CreatureTemplate.Type type)
+    private static string[]? testedTemplateNames;
+    private static string[]? testedTemplateNamesWithSlugcat;
+    public static void CreatureTemplatePicker(string label, ref CreatureTemplate.Type type, bool withSlugcat = false)
     {
-        if (allTemplateNames == null)
+        if (testedTemplateNames == null || testedTemplateNamesWithSlugcat == null)
         {
-            allTemplateNames = CreatureTemplate.Type.values.entries.ToArray();
+            string[] excludedCreatures = ["LizardTemplate", "TentaclePlant", "Overseer", "MirosVulture", "Inspector", "DrillCrab", "TowerCrab", "BoxWorm", "Rattler", "GrappleSnake", "RippleSpider"];
+
+            testedTemplateNames = StaticWorld.creatureTemplates
+                .Where(ct => ct.AI && !ct.smallCreature && !ct.abstractImmobile && !ct.forbidStandardShortcutEntry)
+                .Select(ct => ct.type.value)
+                .Where(name => !excludedCreatures.Contains(name))
+                .ToArray();
+            testedTemplateNamesWithSlugcat = ["Slugcat", ..testedTemplateNames];
+            Log.LogDebug($"{testedTemplateNames.Length} tested creatures: {string.Join(", ", testedTemplateNames)}");
         }
-        int index = type.Index;
-        ImGui.Combo(label, ref index, allTemplateNames, allTemplateNames.Length);
-        type = new CreatureTemplate.Type(CreatureTemplate.Type.values.GetEntry(index));
+        string[] usedNames = withSlugcat ? testedTemplateNamesWithSlugcat : testedTemplateNames;
+
+        int index = usedNames.IndexOf(type.value);
+        ImGui.Combo(label, ref index, usedNames, usedNames.Length);
+        type = new CreatureTemplate.Type(usedNames[index]);
     }
 }

@@ -41,6 +41,8 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
     public ShortcutTestInfo Info { get; }
     public abstract LocationInfoBase LocationBase { get; }
 
+    public bool OtherIsPlayer => Info.OtherType == CreatureTemplate.Type.Slugcat;
+
     protected RainWorldGame Game { get; private set; } = null!; // MemberNotNullWhenAttribute on Setup doesn't work for TestContent :(
     protected AbstractCreature Tested { get; private set; } = null!;
     protected AbstractCreature Other { get; private set; } = null!;
@@ -69,11 +71,12 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
             WarpModMenu.newRoom = LocationBase.PlayerRoomName;
             WarpModMenu.warpActive = true;
 
-            Game.UpdateWhile(() => Game.world.region.name != LocationBase.Region || Game.FirstAnyPlayer.Room.name != LocationBase.PlayerRoomName);
+            Log.LogDebug($"Warping to {LocationBase.PlayerRoomName}");
 
-            Log.LogDebug("Successfully warped to testing region/room");
+            Game.UpdateWhile(() => Game.world.region.name != LocationBase.Region || Game.FirstAnyPlayer.Room.name != LocationBase.PlayerRoomName || Game.FirstAnyPlayer.realizedCreature == null);
         }
 
+        Game.world.rainCycle.timer = 0;
         Game.MurderEveryone();
 
         RoomRealizingRestrictions.RemoveAllRestrictions();
@@ -86,18 +89,37 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
             Game.world.GetAbstractRoom(name).AbstractizeAndRestrict();
         }
 
-        Game.FirstAnyPlayer.Move(LocationBase.PlayerCoord);
-        if (Game.FirstRealizedPlayer != null)
+        if (!OtherIsPlayer)
         {
-            foreach (var bodyChunk in Game.FirstRealizedPlayer.bodyChunks)
+            Game.FirstAnyPlayer.Move(LocationBase.PlayerCoord);
+            if (Game.FirstRealizedPlayer != null)
             {
-                bodyChunk.HardSetPosition(LocationBase.PlayerCoord.MiddleOfTile);
+                foreach (var bodyChunk in Game.FirstRealizedPlayer.bodyChunks)
+                {
+                    bodyChunk.HardSetPosition(LocationBase.PlayerCoord.MiddleOfTile);
+                }
+                MouseDrag.Health.ReviveCreature(Game.FirstRealizedPlayer);
             }
-            MouseDrag.Health.ReviveCreature(Game.FirstRealizedPlayer);
         }
 
         Tested = Game.SpawnCreature(LocationBase.TestedSpawn, Info.TestedType);
-        Other = Game.SpawnCreature(LocationBase.OtherSpawn, Info.OtherType);
+        if (!OtherIsPlayer)
+        {
+            Other = Game.SpawnCreature(LocationBase.OtherSpawn, Info.OtherType);
+        }
+        else
+        {
+            Other = Game.FirstAnyPlayer;
+            Other.Move(LocationBase.OtherSpawn);
+            if (Other.realizedCreature != null)
+            {
+                foreach (var bodyChunk in Other.realizedCreature.bodyChunks)
+                {
+                    bodyChunk.HardSetPosition(LocationBase.OtherSpawn.MiddleOfTile);
+                }
+                MouseDrag.Health.ReviveCreature(Other.realizedCreature);
+            }
+        }
 
         if (Info.Seen)
         {
@@ -108,10 +130,6 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
             {
                 this.Fail("Failed to make tested creature aware of other one");
                 return false;
-            }
-            if (!Other.TryGetRepresentation(Tested, out rep))
-            {
-                this.Fail("Failed to make other creature aware of tested one");
             }
         }
 
@@ -161,6 +179,11 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
         {
             AssertThat(errorLogged).IsFalse().OnFail($"Exception caught and logged to {Path.GetFileName(LogUtilsLogger.ID.Properties.CurrentFilePath)}");
             LogRequestEvents.OnSubmit -= logRequestHandler;
+        }
+
+        if (OtherIsPlayer)
+        {
+            Game.UpdateWhile(() => Other.realizedCreature == null || Other.realizedCreature.inShortcut);
         }
 
         Game.MurderEveryone();

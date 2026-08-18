@@ -32,9 +32,31 @@ internal class AbstractToRealizedTest : ShortcutTestBase
             RealizedRooms = ["CC_A02"]
         };
 
-        public static LocationInfo GetLocation()
+        public static LocationInfo CC_A02_to_CC_A12 { get; } = new LocationInfo(
+            Region: "CC",
+            PlayerRoomName: "CC_A12",
+            PlayerCoord: new WorldCoordinate(23, 16, 17, -1),
+            TestedSpawn: new WorldCoordinate(25, 6, 11, -1),
+            OtherSpawn: new WorldCoordinate(23, 32, 17, -1),
+            TestedEnterCoord: new WorldCoordinate(23, 32, 17, 1),
+            OtherShortcut: new IntVector2(36, 18),
+            EnteringDelay: 15
+        )
         {
-            return CC_C08_to_CC_A02;
+            AbstractRooms = ["CC_A02"],
+            RealizedRooms = ["CC_A12"]
+        };
+
+        public static LocationInfo GetLocation(CreatureTemplate.Type otherType)
+        {
+            if (otherType == CreatureTemplate.Type.Slugcat)
+            {
+                return CC_A02_to_CC_A12;
+            }
+            else
+            {
+                return CC_C08_to_CC_A02;
+            }
         }
     };
 
@@ -64,6 +86,9 @@ internal class AbstractToRealizedTest : ShortcutTestBase
 
         Game.Update(Location.EnteringDelay);
 
+        if (OtherIsPlayer)
+            RoomRealizingRestrictions.RemoveAllRestrictions();
+
         if (Info.First)
             Other.realizedCreature.SuckedIntoShortCut(Location.OtherShortcut, false);
         else
@@ -85,7 +110,7 @@ internal class AbstractToRealizedTest : ShortcutTestBase
         }
 
         AbstractRoom absRoom = Game.world.GetAbstractRoom(Location.TestedSpawn);
-        if (absRoom.realizedRoom != null || !absRoom.KeepAbstract)
+        if (!OtherIsPlayer && (absRoom.realizedRoom != null || !absRoom.KeepAbstract))
         {
             this.Fail("Tested creature room was not kept abstract");
             return;

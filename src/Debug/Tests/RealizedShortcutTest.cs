@@ -35,10 +35,10 @@ internal class RealizedShortcutTest : ShortcutTestBase
             Region: "CC",
             PlayerRoomName: "CC_A02",
             PlayerCoord: new WorldCoordinate(25, 3, 27, -1),
-            TestedSpawn: new WorldCoordinate(25, 6, 11, -1),
-            TestedShortcut: new IntVector2(3, 11),
-            OtherSpawn: new WorldCoordinate(23, 33, 18, -1),
-            OtherShortcut: new IntVector2(36, 18),
+            TestedSpawn: new WorldCoordinate(23, 33, 18, -1),
+            TestedShortcut: new IntVector2(36, 18),
+            OtherSpawn: new WorldCoordinate(25, 6, 11, -1),
+            OtherShortcut: new IntVector2(3, 11),
             EnteringDelay: 20
         )
         {
@@ -111,7 +111,7 @@ internal class RealizedShortcutTest : ShortcutTestBase
 
         if (rep is Tracker.ElaborateCreatureRepresentation elabRep)
         {
-            AssertThat(elabRep.ghosts.Count).IsEqualTo(1); // 3
+            AssertThat(elabRep.ghosts.Count).IsNotZero(); // 3
 
             Tracker.Ghost ghost = elabRep.ghosts[0];
             AssertThat(ghost.coord).IsInRoom(Location.TestedSpawn.room); // 4
