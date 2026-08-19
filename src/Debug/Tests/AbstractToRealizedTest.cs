@@ -62,9 +62,9 @@ internal class AbstractToRealizedTest : ShortcutTestBase
             RealizedRooms = ["MPJNTST_A01"]
         };
 
-        public static LocationInfo GetLocation(ShortcutTestLocationGroup testGroup, CreatureTemplate.Type otherType)
+        public static LocationInfo GetLocation(ShortcutTestLocationGroup locationGroup, CreatureTemplate.Type otherType)
         {
-            return (testGroup, otherType.value) switch
+            return (locationGroup, otherType.value) switch
             {
                 (ShortcutTestLocationGroup.CC, "Slugcat") => CC_A02_to_CC_A12,
                 (ShortcutTestLocationGroup.CC, _) => CC_C08_to_CC_A02,

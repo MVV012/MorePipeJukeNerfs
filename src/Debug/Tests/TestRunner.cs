@@ -13,12 +13,11 @@ internal class TestRunner
     public FormatEnums.FormatVerbosity ReportVerbosity { get; set; } = FormatEnums.FormatVerbosity.Verbose;
     public bool AssertNoLoggedErrors { get; set; } = true;
 
-    public static bool IsInit = false;
     public static LogID TestLogID = null!;
     public static Logger TestLogger = null!;
     public static Logger CombinedLogger = null!;
 
-    private static void Init()
+    public static void OnEnable()
     {
         TestLogID = new LogID("MorePipeJukeNerfsTests.log", LogAccess.FullAccess, register: true);
         LogUtilsLogger.RemoveIntoOutroMessages(TestLogID);
@@ -26,14 +25,17 @@ internal class TestRunner
         CombinedLogger = new Logger(LogTarget.Combiner.Combine(LogUtilsLogger.ID, TestLogID));
     }
 
-    public void RunTests(params ITestable[] tests)
+    public static void OnDisable()
     {
-        if (!IsInit)
-        {
-            Init();
-        }
+        TestLogID.Unregister();
+    }
 
-        LogFile.StartNewSession(TestLogID);
+    public void RunTest(ITestable test, bool clearTestLog = true)
+    {
+        if (clearTestLog)
+        {
+            LogFile.StartNewSession(TestLogID);
+        }
 
         AssertHandler assertHandler = new AssertHandler(TestLogger) { Behavior = AssertBehavior.DoNothing };
 
@@ -42,26 +44,12 @@ internal class TestRunner
 
         TestSuite testSuite = new TestSuite { Handler = assertHandler };
 
-        foreach (ITestable test in tests)
-        {
-            testSuite.Add(test);
-        }
-
-        CombinedLogger.LogDebug(GetLogMessage(tests));
+        testSuite.Add(test);
+        CombinedLogger.LogDebug($"Starting test: {test.Name}");
         using (new Stopwatch().BeginScope(CombinedLogger))
         {
             testSuite.RunAllTests();
         }
     }
 
-    public static string GetLogMessage(params ITestable[] tests)
-    {
-        string testNames = string.Join("; ", tests.Select(test => test switch {
-            TestCase @case => @case.Name,
-            _ => "Unnamed test"
-        }));
-        int limit = 80;
-        if (testNames.Length > limit) testNames = testNames[..limit] + "...";
-        return $"Starting {tests.Length} testable{(tests.Length == 1 ? "" : "s")}: {testNames}";
-    }
 }

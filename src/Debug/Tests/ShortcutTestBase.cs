@@ -88,7 +88,9 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
         RoomRealizingRestrictions.RemoveAllRestrictions();
         foreach (string name in LocationBase.RealizedRooms)
         {
-            Game.world.GetAbstractRoom(name).RealizeAndRestrict(Game.world, Game);
+            AbstractRoom room = Game.world.GetAbstractRoom(name);
+            room.RealizeAndRestrict(Game.world, Game);
+            MouseDrag.Destroy.DestroyObjects(room.realizedRoom, creatures: true, items: true, onlyDead: false);
         }
         foreach (string name in LocationBase.AbstractRooms)
         {

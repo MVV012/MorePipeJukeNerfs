@@ -4,7 +4,7 @@ namespace MorePipeJukeNerfs.Debug.Tests;
 
 internal class ShortcutTestFactory(CreatureTemplate.Type TestedType, CreatureTemplate.Type OtherType)
 {
-    public ShortcutTestLocationGroup TestGroup { get; init; } = ShortcutTestLocationGroup.CC;
+    public ShortcutTestLocationGroup LocationGroup { get; init; } = ShortcutTestLocationGroup.CC;
 
     public TestableGroup CreateAll(TestCaseGroup? group = null)
     {
@@ -46,12 +46,12 @@ internal class ShortcutTestFactory(CreatureTemplate.Type TestedType, CreatureTem
         {
             ShortcutTestType.NormalShortcut or ShortcutTestType.RealizedToRealized => RealizedShortcutTest.Create(
                 info,
-                RealizedShortcutTest.LocationInfo.GetLocation(TestGroup, type),
+                RealizedShortcutTest.LocationInfo.GetLocation(LocationGroup, type),
                 group
             ),
             ShortcutTestType.AbstractToRealized => AbstractToRealizedTest.Create(
                 info,
-                AbstractToRealizedTest.LocationInfo.GetLocation(TestGroup, OtherType),
+                AbstractToRealizedTest.LocationInfo.GetLocation(LocationGroup, OtherType),
                 group
             ),
             _ => throw new Exception("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
@@ -63,7 +63,24 @@ internal class ShortcutTestFactory(CreatureTemplate.Type TestedType, CreatureTem
         TestableGroup newGroup = TestableGroup.Create($"{TestedType} <-> {OtherType}", group);
 
         CreateAll(newGroup);
-        new ShortcutTestFactory(OtherType, TestedType) { TestGroup = TestGroup }.CreateAll(newGroup);
+        new ShortcutTestFactory(OtherType, TestedType) { LocationGroup = LocationGroup }.CreateAll(newGroup);
+
+        return newGroup;
+    }
+
+    public static TestableGroup CreateAllForTested(CreatureTemplate.Type testedType, CreatureTemplate.Type[] otherTypes, ShortcutTestLocationGroup locationGroup, TestCaseGroup? group = null)
+    {
+        if (otherTypes.Length == 1)
+        {
+            return new ShortcutTestFactory(testedType, otherTypes[0]) { LocationGroup = locationGroup }.CreateAll(group);
+        }
+
+        TestableGroup newGroup = TestableGroup.Create($"{testedType} -> {string.Join(", ", otherTypes.Select(ct => ct.value))}", group);
+
+        foreach (var other in otherTypes)
+        {
+            new ShortcutTestFactory(testedType, other) { LocationGroup = locationGroup }.CreateAll(newGroup);
+        }
 
         return newGroup;
     }

@@ -63,6 +63,7 @@ sealed public class Plugin : BaseUnityPlugin
         if (DebugWindowEnabled)
         {
             Debug.DebugImGUIWindow.OnDisable();
+            Debug.Tests.TestRunner.OnDisable();
         }
 #endif
         LogWrapper.OnDisable();
@@ -100,6 +101,7 @@ sealed public class Plugin : BaseUnityPlugin
         if (disabledDeps.Count == 0 && LogWrapper.LogUtilsUsed)
         {
             Debug.DebugImGUIWindow.OnEnable();
+            Debug.Tests.TestRunner.OnEnable();
             Debug.Tests.RoomRealizingRestrictions.ApplyHooks();
             Debug.Tests.PlayerGraphicsInitiateSpritesFix.ApplyHooks();
 

@@ -9,6 +9,7 @@ using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
 using RWIMGUI.API;
 using System.Diagnostics;
+using UnityEngine;
 
 namespace MorePipeJukeNerfs.Debug;
 
@@ -39,6 +40,8 @@ internal class DebugImGUIWindow
 
     private static bool BlockWMEvent_Hook(Func<IMGUIContext, bool> orig, IMGUIContext self)
     {
+        if (runningTests) return false;
+
         return orig(self) && (ImGui.IsWindowHovered(ImGuiHoveredFlags.AnyWindow) || ImGui.IsAnyItemHovered());
     }
 
@@ -60,7 +63,16 @@ internal class DebugImGUIWindow
     private static ShortcutTestType testType = ShortcutTestType.NormalShortcut;
     private static FormatEnums.FormatVerbosity reportVerbosity = FormatEnums.FormatVerbosity.Compact;
     private static bool assertNoLoggedErrors = true;
-    private static ShortcutTestLocationGroup testGroup = ShortcutTestLocationGroup.CC;
+    private static ShortcutTestLocationGroup locationGroup = ShortcutTestLocationGroup.CC;
+    private static bool[]? testedCreatures = null;
+    private static bool[]? otherCreatures = null;
+
+    private static bool runningTests = false;
+    private static int currentTestIndex = -1;
+    private static long startTicks = -1;
+    private static Stopwatch testStopwatch = null!;
+    private static string? testRunningInfo = null;
+
     private static void WindowContent()
     {
         if (!RWGameUtils.TryGetRWGame(out RainWorldGame game))
@@ -106,77 +118,174 @@ internal class DebugImGUIWindow
         {
             ImGui.Unindent();
 
-            ImGUIComponents.EnumPicker("Location", ref testGroup);
-
-            ImGui.Separator();
-
-            ImGUIComponents.CreatureTemplatePicker("Tested creature", ref testedCreature);
-            ImGUIComponents.CreatureTemplatePicker("Other creature", ref otherCreature, withSlugcat: true);
-            ImGUIComponents.EnumPicker("Test type", ref testType);
-            ImGui.Checkbox("First", ref first);
-            ImGui.Checkbox("Seen", ref seen);
+            ImGUIComponents.EnumPicker("Location", ref locationGroup);
 
             ImGui.Separator();
 
             ImGUIComponents.EnumPicker("Report verbosity", ref reportVerbosity);
             ImGui.Checkbox("Assert no logged errors", ref assertNoLoggedErrors);
 
-            if (game.GamePaused || game.FirstAnyPlayer.realizedCreature == null || game.FirstRealizedPlayer.inShortcut)
+            if (ImGui.BeginTabBar("testingTabBar"))
             {
-                ImGui.BeginDisabled();
-            }
+                if (ImGui.BeginTabItem("Single test"))
+                {
+                    ImGUIComponents.CreatureTemplatePicker("Tested creature", ref testedCreature);
+                    ImGUIComponents.CreatureTemplatePicker("Other creature", ref otherCreature, withSlugcat: true);
+                    ImGUIComponents.EnumPicker("Test type", ref testType);
+                    ImGui.Checkbox("First", ref first);
+                    ImGui.Checkbox("Seen", ref seen);
 
-            if (ImGui.Button("Run test"))
-            {
-                RunOnMainThread(() => {
-                    ShortcutTestFactory factory = new(testedCreature, otherCreature) { TestGroup = testGroup };
-                    TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
-                    runner.RunTests(factory.CreateTest(testType, first, seen));
-                });
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Run all tests"))
-            {
-                RunOnMainThread(() => {
-                    ShortcutTestFactory factory = new(testedCreature, otherCreature) { TestGroup = testGroup };
-                    TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
-                    runner.RunTests(factory.CreateAll());
-                });
-            }
+                    if (game.GamePaused || game.FirstAnyPlayer.realizedCreature == null || game.FirstRealizedPlayer.inShortcut)
+                    {
+                        ImGui.BeginDisabled();
+                    }
 
-            ImGui.SameLine();
-            if (otherCreature == CreatureTemplate.Type.Slugcat)
-                ImGui.BeginDisabled();
+                    if (ImGui.Button("Run test"))
+                    {
+                        RunOnMainThread(() => {
+                            ShortcutTestFactory factory = new(testedCreature, otherCreature) { LocationGroup = locationGroup };
+                            TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
+                            runner.RunTest(factory.CreateTest(testType, first, seen));
+                        });
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Run all tests"))
+                    {
+                        RunOnMainThread(() => {
+                            ShortcutTestFactory factory = new(testedCreature, otherCreature) { LocationGroup = locationGroup };
+                            TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
+                            runner.RunTest(factory.CreateAll());
+                        });
+                    }
 
-            if (ImGui.Button("Run all tests for pair"))
-            {
-                RunOnMainThread(() => {
-                    ShortcutTestFactory factory = new(testedCreature, otherCreature) { TestGroup = testGroup };
-                    TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
-                    runner.RunTests(factory.CreateAllTestsForPair());
-                });
-            }
+                    ImGui.SameLine();
+                    if (otherCreature == CreatureTemplate.Type.Slugcat)
+                        ImGui.BeginDisabled();
 
-            if (otherCreature == CreatureTemplate.Type.Slugcat)
-                ImGui.EndDisabled();
+                    if (ImGui.Button("Run all tests for pair"))
+                    {
+                        RunOnMainThread(() => {
+                            ShortcutTestFactory factory = new(testedCreature, otherCreature) { LocationGroup = locationGroup };
+                            TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
+                            runner.RunTest(factory.CreateAllTestsForPair());
+                        });
+                    }
 
-            if (ImGui.Button("Setup test"))
-            {
-                RunOnMainThread(() => {
-                    ShortcutTestFactory factory = new(testedCreature, otherCreature) { TestGroup = testGroup };
-                    factory.CreateTest(testType, first, seen).Setup();
-                });
-            }
+                    if (otherCreature == CreatureTemplate.Type.Slugcat)
+                        ImGui.EndDisabled();
 
-            if (game.GamePaused || game.FirstAnyPlayer.realizedCreature == null || game.FirstRealizedPlayer.inShortcut)
-            {
-                ImGui.EndDisabled();
-            }
+                    if (ImGui.Button("Setup test"))
+                    {
+                        RunOnMainThread(() => {
+                            ShortcutTestFactory factory = new(testedCreature, otherCreature) { LocationGroup = locationGroup };
+                            factory.CreateTest(testType, first, seen).Setup();
+                        });
+                    }
 
-            ImGui.SameLine();
-            if (ImGui.Button("Reset realizing restrictions"))
-            {
-                RoomRealizingRestrictions.RemoveAllRestrictions();
+                    if (game.GamePaused || game.FirstAnyPlayer.realizedCreature == null || game.FirstRealizedPlayer.inShortcut)
+                    {
+                        ImGui.EndDisabled();
+                    }
+
+                    ImGui.SameLine();
+                    if (ImGui.Button("Reset realizing restrictions"))
+                    {
+                        RoomRealizingRestrictions.RemoveAllRestrictions();
+                    }
+
+                    ImGui.EndTabItem();
+                }
+                if (ImGui.BeginTabItem("Matrix test"))
+                {
+                    if (testedCreatures == null || otherCreatures == null)
+                    {
+                        ImGUIComponents.InitTestedTemplateNames();
+                        testedCreatures = new bool[ImGUIComponents.TestedTemplateNames.Length];
+                        otherCreatures = new bool[ImGUIComponents.TestedTemplateNamesWithSlugcat.Length];
+                    }
+
+                    if (ImGui.BeginChild("ListBoxes", new System.Numerics.Vector2(-float.Epsilon, ImGui.GetTextLineHeightWithSpacing() * 8), ImGuiChildFlags.ResizeY))
+                    {
+                        ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X * 0.49f);
+                        ImGUIComponents.CreatureTemplateMultiPicker("Tested creatures", ref testedCreatures);
+                        ImGui.SameLine();
+                        ImGUIComponents.CreatureTemplateMultiPicker("Other creatures", ref otherCreatures, withSlugcat: true);
+                        ImGui.PopItemWidth();
+                    }
+                    ImGui.EndChild();
+
+                    if (game.GamePaused
+                        || game.FirstAnyPlayer.realizedCreature == null
+                        || game.FirstRealizedPlayer.inShortcut
+                        || testedCreatures.Count(x => x) == 0
+                        || otherCreatures.Count(x => x) == 0)
+                    {
+                        ImGui.BeginDisabled();
+                    }
+
+                    if (ImGui.Button("Run tests"))
+                    {
+                        var testedTemplates = ImGUIComponents.GetSelectedTemplates(testedCreatures);
+                        var otherTemplates = ImGUIComponents.GetSelectedTemplates(otherCreatures, withSlugcat: true);
+
+                        runningTests = true;
+                        currentTestIndex = 0;
+                        testStopwatch = new Stopwatch();
+                        testStopwatch.Start();
+                        startTicks = testStopwatch.ElapsedTicks;
+                        testRunningInfo = $"{currentTestIndex}/{testedTemplates.Length} tests completed\n0.00 s passed";
+
+                        void RunNextTest()
+                        {
+                            TestRunner runner = new() { ReportVerbosity = reportVerbosity, AssertNoLoggedErrors = assertNoLoggedErrors };
+                            runner.RunTest(ShortcutTestFactory.CreateAllForTested(testedTemplates[currentTestIndex], otherTemplates, locationGroup), clearTestLog: currentTestIndex == 0);
+
+                            currentTestIndex++;
+
+                            TimeSpan timeTaken = TimeSpan.FromTicks(testStopwatch.ElapsedTicks - startTicks);
+                            TimeSpan timeLeft = timeTaken.DivideBy(currentTestIndex).MultiplyBy(testedTemplates.Length - currentTestIndex);
+                            testRunningInfo = $"{currentTestIndex}/{testedTemplates.Length} tests completed\n{timeTaken.TotalSeconds:0.00} s passed, {timeLeft.TotalSeconds:0.00} s remaining";
+
+                            if (!Input.GetKey(KeyCode.I) && runningTests && currentTestIndex < testedTemplates.Length)
+                            {
+                                UtilityCore.Scheduler.Schedule(RunNextTest, frameInterval: 1, invokeLimit: 1);
+                            }
+                            else
+                            {
+                                runningTests = false;
+                                TimeSpan totalTimeTaken = TimeSpan.FromTicks(testStopwatch.ElapsedTicks - startTicks);
+                                TestRunner.CombinedLogger.LogDebug($"{currentTestIndex} tests completed in {(int)totalTimeTaken.TotalMilliseconds} ms / {totalTimeTaken.TotalSeconds:0.00} s");
+                                testStopwatch.Stop();
+                            }
+                        }
+
+                        UtilityCore.Scheduler.Schedule(RunNextTest, frameInterval: 1, invokeLimit: 1);
+                    }
+
+                    if (game.GamePaused
+                        || game.FirstAnyPlayer.realizedCreature == null
+                        || game.FirstRealizedPlayer.inShortcut
+                        || testedCreatures.Count(x => x) == 0
+                        || otherCreatures.Count(x => x) == 0)
+                    {
+                        ImGui.EndDisabled();
+                    }
+
+                    if (runningTests)
+                    {
+                        ImGui.SameLine();
+                        ImGui.TextDisabled("Hold I to stop");
+                    }
+
+                    if (!string.IsNullOrEmpty(testRunningInfo))
+                    {
+                        ImGui.Text(testRunningInfo);
+                    }
+
+                    ImGui.EndTabItem();
+                }
+
+                ImGui.EndTabBar();
             }
 
             ImGui.Indent();

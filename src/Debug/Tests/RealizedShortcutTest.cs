@@ -73,9 +73,9 @@ internal class RealizedShortcutTest : ShortcutTestBase
             RealizedRooms = ["MPJNTST_A02", "MPJNTST_A01"]
         };
 
-        public static LocationInfo GetLocation(ShortcutTestLocationGroup testGroup, ShortcutTestType type)
+        public static LocationInfo GetLocation(ShortcutTestLocationGroup locationGroup, ShortcutTestType type)
         {
-            return (testGroup, type) switch
+            return (locationGroup, type) switch
             {
                 (ShortcutTestLocationGroup.CC, ShortcutTestType.NormalShortcut) => CC_A02,
                 (ShortcutTestLocationGroup.CC, ShortcutTestType.RealizedToRealized) => CC_A02_to_CC_A12,

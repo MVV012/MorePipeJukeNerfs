@@ -2,6 +2,7 @@ using ImGuiNET;
 using LogUtils.Formatting;
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MorePipeJukeNerfs.Debug;
 
@@ -60,26 +61,114 @@ internal static class ImGUIComponents
         }
     }
 
-    private static string[]? testedTemplateNames;
-    private static string[]? testedTemplateNamesWithSlugcat;
-    public static void CreatureTemplatePicker(string label, ref CreatureTemplate.Type type, bool withSlugcat = false)
+    public static string[]? TestedTemplateNames;
+    public static string[]? TestedTemplateNamesWithSlugcat;
+
+    [MemberNotNull(nameof(TestedTemplateNames))]
+    [MemberNotNull(nameof(TestedTemplateNamesWithSlugcat))]
+    public static void InitTestedTemplateNames()
     {
-        if (testedTemplateNames == null || testedTemplateNamesWithSlugcat == null)
+        if (TestedTemplateNames == null || TestedTemplateNamesWithSlugcat == null)
         {
             string[] excludedCreatures = ["LizardTemplate", "TentaclePlant", "Overseer", "MirosVulture", "Inspector", "DrillCrab", "TowerCrab", "BoxWorm", "Rattler", "GrappleSnake", "RippleSpider"];
 
-            testedTemplateNames = StaticWorld.creatureTemplates
+            TestedTemplateNames = StaticWorld.creatureTemplates
                 .Where(ct => ct.AI && !ct.smallCreature && !ct.abstractImmobile && !ct.forbidStandardShortcutEntry)
                 .Select(ct => ct.type.value)
                 .Where(name => !excludedCreatures.Contains(name))
                 .ToArray();
-            testedTemplateNamesWithSlugcat = ["Slugcat", ..testedTemplateNames];
-            Log.LogDebug($"{testedTemplateNames.Length} tested creatures: {string.Join(", ", testedTemplateNames)}");
+            TestedTemplateNamesWithSlugcat = ["Slugcat", .. TestedTemplateNames];
+            Log.LogDebug($"{TestedTemplateNames.Length} tested creatures: {string.Join(", ", TestedTemplateNames)}");
         }
-        string[] usedNames = withSlugcat ? testedTemplateNamesWithSlugcat : testedTemplateNames;
+    }
 
+    public static void CreatureTemplatePicker(string label, ref CreatureTemplate.Type type, bool withSlugcat = false)
+    {
+        InitTestedTemplateNames();
+        string[] usedNames = withSlugcat ? TestedTemplateNamesWithSlugcat : TestedTemplateNames;
         int index = usedNames.IndexOf(type.value);
         ImGui.Combo(label, ref index, usedNames, usedNames.Length);
         type = new CreatureTemplate.Type(usedNames[index]);
+    }
+
+    public static void CreatureTemplateMultiPicker(string label, ref bool[] selectedTypes, bool withSlugcat = false)
+    {
+        InitTestedTemplateNames();
+        string[] usedNames = withSlugcat ? TestedTemplateNamesWithSlugcat : TestedTemplateNames;
+
+        ImGui.BeginGroup();
+        ImGui.Text($"{label}: {selectedTypes.Count(x => x)}/{usedNames.Length}");
+        ImGui.SameLine();
+        ImGui.TextDisabled("(?)");
+        ImGui.SetItemTooltip("Use Ctrl/Shift to select multiple, Ctrl+A to select all");
+        if (ImGui.BeginListBox($"##{label}", new System.Numerics.Vector2(0f, -5f)))
+        {
+            ImGuiMultiSelectIOPtr msIo = ImGui.BeginMultiSelect(
+                ImGuiMultiSelectFlags.ClearOnEscape | ImGuiMultiSelectFlags.BoxSelect1d,
+                selectedTypes.Count(x => x),
+                usedNames.Length
+            );
+            // Applying requests
+            for (int i = 0; i < msIo.Requests.Size; i++)
+            {
+                ImGuiSelectionRequestPtr req = msIo.Requests[i];
+
+                if (req.Type == ImGuiSelectionRequestType.SetAll)
+                {
+                    for (int j = 0; j < selectedTypes.Length; j++)
+                    {
+                        selectedTypes[j] = req.Selected;
+                    }
+                }
+                else if (req.Type == ImGuiSelectionRequestType.SetRange)
+                {
+                    for (int j = (int)req.RangeFirstItem; j <= (int)req.RangeLastItem; j++)
+                    {
+                        selectedTypes[j] = req.Selected;
+                    }
+                }
+            }
+
+            for (int i = 0; i < usedNames.Length; i++)
+            {
+                ImGui.SetNextItemSelectionUserData(i);
+                ImGui.Selectable(usedNames[i], selectedTypes[i]);
+            }
+
+            msIo = ImGui.EndMultiSelect();
+            // Applying requests
+            for (int i = 0; i < msIo.Requests.Size; i++)
+            {
+                ImGuiSelectionRequestPtr req = msIo.Requests[i];
+
+                if (req.Type == ImGuiSelectionRequestType.SetAll)
+                {
+                    for (int j = 0; j < selectedTypes.Length; j++)
+                    {
+                        selectedTypes[j] = req.Selected;
+                    }
+                }
+                else if (req.Type == ImGuiSelectionRequestType.SetRange)
+                {
+                    for (int j = (int)req.RangeFirstItem; j <= (int)req.RangeLastItem; j++)
+                    {
+                        selectedTypes[j] = req.Selected;
+                    }
+                }
+            }
+
+            ImGui.EndListBox();
+        }
+        ImGui.EndGroup();
+    }
+
+    public static CreatureTemplate.Type[] GetSelectedTemplates(bool[] selectedTypes, bool withSlugcat = false)
+    {
+        InitTestedTemplateNames();
+        string[] usedNames = withSlugcat ? TestedTemplateNamesWithSlugcat : TestedTemplateNames;
+        return usedNames
+            .Where((name, i) => selectedTypes[i])
+            .Select(name => new CreatureTemplate.Type(name))
+            .ToArray();
     }
 }
