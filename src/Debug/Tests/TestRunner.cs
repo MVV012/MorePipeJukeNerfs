@@ -30,6 +30,15 @@ internal class TestRunner
         TestLogID.Unregister();
     }
 
+    private AssertHandler _handler;
+    private TestSuite _testSuite;
+
+    public TestRunner()
+    {
+        _handler = new AssertHandler(TestLogger) { Behavior = AssertBehavior.DoNothing };
+        _testSuite = new TestSuite { Handler = _handler };
+    }
+
     public void RunTest(ITestable test, bool clearTestLog = true)
     {
         if (clearTestLog)
@@ -37,18 +46,16 @@ internal class TestRunner
             LogFile.StartNewSession(TestLogID);
         }
 
-        AssertHandler assertHandler = new AssertHandler(TestLogger) { Behavior = AssertBehavior.DoNothing };
-
         TestCasePolicy.ReportVerbosity = ReportVerbosity;
         ShortcutTestBase.AssertNoLoggedErrors = AssertNoLoggedErrors;
 
-        TestSuite testSuite = new TestSuite { Handler = assertHandler };
+        _testSuite = new TestSuite { Handler = _handler };
+        _testSuite.Add(test);
+        //CombinedLogger.LogDebug($"Starting test: {test.Name}");
 
-        testSuite.Add(test);
-        CombinedLogger.LogDebug($"Starting test: {test.Name}");
-        using (new Stopwatch().BeginScope(CombinedLogger))
+        //using (new Stopwatch().BeginScope(CombinedLogger))
         {
-            testSuite.RunAllTests();
+            _testSuite.RunAllTests();
         }
     }
 

@@ -69,6 +69,14 @@ internal static class LogWrapper
 
     private static void LogUtilsLoggerOnEnable() => Debug.LogUtilsLogger.OnEnable();
     private static void LogUtilsLoggerOnDisable() => Debug.LogUtilsLogger.OnDisable();
-    private static void LogUtilsLoggerLog(LogLevel level, object data) => Debug.LogUtilsLogger.Global.Log.Log(level, data);
+    private static void LogUtilsLoggerLog(LogLevel level, object data)
+    {
+        if (Debug.DebugImGUIWindow.RunningTests && level != LogLevel.Error)
+        {
+            return;
+        }
+
+        Debug.LogUtilsLogger.Global.Log.Log(level, data);
+    }
     private static string LogUtilsLoggerGetFilePath() => Debug.LogUtilsLogger.ID.Properties.CurrentFilePath;
 }

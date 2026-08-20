@@ -1,5 +1,6 @@
 using ImGuiNET;
 using LogUtils.Formatting;
+using MorePipeJukeNerfs.Debug.Tests;
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
 using System.Diagnostics.CodeAnalysis;
@@ -61,40 +62,19 @@ internal static class ImGUIComponents
         }
     }
 
-    public static string[]? TestedTemplateNames;
-    public static string[]? TestedTemplateNamesWithSlugcat;
-
-    [MemberNotNull(nameof(TestedTemplateNames))]
-    [MemberNotNull(nameof(TestedTemplateNamesWithSlugcat))]
-    public static void InitTestedTemplateNames()
+    public static void CreatureTemplatePicker(string label, ref CreatureTemplate.Type type, bool other = false)
     {
-        if (TestedTemplateNames == null || TestedTemplateNamesWithSlugcat == null)
-        {
-            string[] excludedCreatures = ["LizardTemplate", "TentaclePlant", "Overseer", "MirosVulture", "Inspector", "DrillCrab", "TowerCrab", "BoxWorm", "Rattler", "GrappleSnake", "RippleSpider"];
-
-            TestedTemplateNames = StaticWorld.creatureTemplates
-                .Where(ct => ct.AI && !ct.smallCreature && !ct.abstractImmobile && !ct.forbidStandardShortcutEntry)
-                .Select(ct => ct.type.value)
-                .Where(name => !excludedCreatures.Contains(name))
-                .ToArray();
-            TestedTemplateNamesWithSlugcat = ["Slugcat", .. TestedTemplateNames];
-            Log.LogDebug($"{TestedTemplateNames.Length} tested creatures: {string.Join(", ", TestedTemplateNames)}");
-        }
-    }
-
-    public static void CreatureTemplatePicker(string label, ref CreatureTemplate.Type type, bool withSlugcat = false)
-    {
-        InitTestedTemplateNames();
-        string[] usedNames = withSlugcat ? TestedTemplateNamesWithSlugcat : TestedTemplateNames;
+        TestedCreatures.InitTestedTemplateNames();
+        string[] usedNames = other ? TestedCreatures.OtherTemplateNames: TestedCreatures.TestedTemplateNames;
         int index = usedNames.IndexOf(type.value);
         ImGui.Combo(label, ref index, usedNames, usedNames.Length);
         type = new CreatureTemplate.Type(usedNames[index]);
     }
 
-    public static void CreatureTemplateMultiPicker(string label, ref bool[] selectedTypes, bool withSlugcat = false)
+    public static void CreatureTemplateMultiPicker(string label, ref bool[] selectedTypes, bool other = false)
     {
-        InitTestedTemplateNames();
-        string[] usedNames = withSlugcat ? TestedTemplateNamesWithSlugcat : TestedTemplateNames;
+        TestedCreatures.InitTestedTemplateNames();
+        string[] usedNames = other ? TestedCreatures.OtherTemplateNames : TestedCreatures.TestedTemplateNames;
 
         ImGui.BeginGroup();
         ImGui.Text($"{label}: {selectedTypes.Count(x => x)}/{usedNames.Length}");
@@ -160,15 +140,5 @@ internal static class ImGUIComponents
             ImGui.EndListBox();
         }
         ImGui.EndGroup();
-    }
-
-    public static CreatureTemplate.Type[] GetSelectedTemplates(bool[] selectedTypes, bool withSlugcat = false)
-    {
-        InitTestedTemplateNames();
-        string[] usedNames = withSlugcat ? TestedTemplateNamesWithSlugcat : TestedTemplateNames;
-        return usedNames
-            .Where((name, i) => selectedTypes[i])
-            .Select(name => new CreatureTemplate.Type(name))
-            .ToArray();
     }
 }

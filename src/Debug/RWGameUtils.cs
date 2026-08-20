@@ -19,6 +19,7 @@ internal static class RWGameUtils
         }
     }
 
+    private static bool s_checkedForDebugVis = false;
     private static MethodInfo? s_debugVisClearAll = null;
 
     extension(RainWorldGame game)
@@ -60,11 +61,23 @@ internal static class RWGameUtils
             game.shortcuts.borderTravelVessels = game.shortcuts.borderTravelVessels.Where(vessel => vessel.creature is Player { isNPC: false }).ToList();
             game.shortcuts.betweenRoomsWaitingLobby = game.shortcuts.betweenRoomsWaitingLobby.Where(vessel => vessel.creature is Player { isNPC: false }).ToList();
 
-            if (s_debugVisClearAll == null)
+            if (!s_checkedForDebugVis)
             {
-                s_debugVisClearAll = typeof(DebugVisualizer.DebugVisualizer).GetMethod("ClearAllSprites", BindingFlags.Instance | BindingFlags.NonPublic);
+                s_checkedForDebugVis = true;
+                if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.Equals("DebugVisualizer", StringComparison.OrdinalIgnoreCase)))
+                {
+                    s_debugVisClearAll = Type.GetType("DebugVisualizer.DebugVisualizer, DebugVisualizer", throwOnError: false)?.GetMethod("ClearAllSprites", BindingFlags.Instance | BindingFlags.NonPublic);
+                }
             }
-            s_debugVisClearAll.Invoke(DebugVisualizer.DebugVisualizer.Instance, [null]);
+            if (s_debugVisClearAll != null)
+            {
+                game.ClearDebugVisualizerSprites();
+            }
+        }
+
+        private void ClearDebugVisualizerSprites()
+        {
+            s_debugVisClearAll!.Invoke(DebugVisualizer.DebugVisualizer.Instance, [null]);
         }
 
         public void Update(int times)

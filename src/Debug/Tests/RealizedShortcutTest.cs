@@ -48,10 +48,10 @@ internal class RealizedShortcutTest : ShortcutTestBase
         public static LocationInfo MPJNTST_A01 { get; } = new LocationInfo(
             Region: "MPJNTST",
             PlayerRoomName: "MPJNTST_A01",
-            PlayerCoord: new WorldCoordinate(871, 4, 10, -1),
-            TestedSpawn: new WorldCoordinate(871, 3, 4, -1),
+            PlayerCoord: new WorldCoordinate(MPJNTST_A01_index, 4, 10, -1),
+            TestedSpawn: new WorldCoordinate(MPJNTST_A01_index, 3, 4, -1),
             TestedShortcut: new IntVector2(4, 1),
-            OtherSpawn: new WorldCoordinate(871, 10, 4, -1),
+            OtherSpawn: new WorldCoordinate(MPJNTST_A01_index, 10, 4, -1),
             OtherShortcut: new IntVector2(8, 1),
             EnteringDelay: 6
         )
@@ -62,10 +62,10 @@ internal class RealizedShortcutTest : ShortcutTestBase
         public static LocationInfo MPJNTST_A02_to_A01 { get; } = new LocationInfo(
             Region: "MPJNTST",
             PlayerRoomName: "MPJNTST_A01",
-            PlayerCoord: new WorldCoordinate(871, 4, 10, -1),
-            TestedSpawn: new WorldCoordinate(872, 6, 2, -1),
+            PlayerCoord: new WorldCoordinate(MPJNTST_A01_index, 4, 10, -1),
+            TestedSpawn: new WorldCoordinate(MPJNTST_A02_index, 6, 2, -1),
             TestedShortcut: new IntVector2(2, 2),
-            OtherSpawn: new WorldCoordinate(871, 10, 4, -1),
+            OtherSpawn: new WorldCoordinate(MPJNTST_A01_index, 10, 4, -1),
             OtherShortcut: new IntVector2(15, 4),
             EnteringDelay: 10
         )
@@ -129,6 +129,7 @@ internal class RealizedShortcutTest : ShortcutTestBase
         catch (Exception e)
         {
             this.Fail($"Unhandled exception: {e}");
+            UnhandledException = true;
             return;
         }
 

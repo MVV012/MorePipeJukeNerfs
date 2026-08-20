@@ -86,7 +86,7 @@ sealed public class Plugin : BaseUnityPlugin
         MachineConnector.SetRegisteredOI(GUID, Options.Instance);
         MachineConnector.ReloadConfig(Options.Instance);
 
-        List<string> debugDeps = ["rwimgui", "maxi-mol.mousedrag", "warp", "CandleSign.debugvisualizer"];
+        List<string> debugDeps = ["rwimgui", "maxi-mol.mousedrag", "warp"];
         List<string> disabledDeps = debugDeps.Where(dep => !ModManager.ActiveMods.Exists(mod => mod.id == dep)).ToList();
 
         if (disabledDeps.Count != 0)

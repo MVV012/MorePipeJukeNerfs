@@ -70,12 +70,11 @@ internal class ShortcutTestFactory(CreatureTemplate.Type TestedType, CreatureTem
 
     public static TestableGroup CreateAllForTested(CreatureTemplate.Type testedType, CreatureTemplate.Type[] otherTypes, ShortcutTestLocationGroup locationGroup, TestCaseGroup? group = null)
     {
-        if (otherTypes.Length == 1)
-        {
-            return new ShortcutTestFactory(testedType, otherTypes[0]) { LocationGroup = locationGroup }.CreateAll(group);
-        }
+        string otherNames = string.Join(", ", otherTypes.Select(ct => ct.value));
+        int limit = 82;
+        if (otherNames.Length > limit) otherNames = otherNames[..limit] + "...";
 
-        TestableGroup newGroup = TestableGroup.Create($"{testedType} -> {string.Join(", ", otherTypes.Select(ct => ct.value))}", group);
+        TestableGroup newGroup = TestableGroup.Create($"{testedType} -> {otherNames}", group);
 
         foreach (var other in otherTypes)
         {

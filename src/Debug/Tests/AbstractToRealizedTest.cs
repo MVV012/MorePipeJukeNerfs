@@ -50,10 +50,10 @@ internal class AbstractToRealizedTest : ShortcutTestBase
         public static LocationInfo MPJNTST_A02_to_A01 { get; } = new LocationInfo(
             Region: "MPJNTST",
             PlayerRoomName: "MPJNTST_A01",
-            PlayerCoord: new WorldCoordinate(871, 4, 10, -1),
-            TestedSpawn: new WorldCoordinate(872, 6, 2, -1),
-            OtherSpawn: new WorldCoordinate(871, 10, 4, -1),
-            TestedEnterCoord: new WorldCoordinate(871, 12, 4, 0),
+            PlayerCoord: new WorldCoordinate(MPJNTST_A01_index, 4, 10, -1),
+            TestedSpawn: new WorldCoordinate(MPJNTST_A02_index, 6, 2, -1),  
+            OtherSpawn: new WorldCoordinate(MPJNTST_A01_index, 10, 4, -1),
+            TestedEnterCoord: new WorldCoordinate(MPJNTST_A01_index, 12, 4, 0),
             OtherShortcut: new IntVector2(15, 4),
             EnteringDelay: 10
         )
@@ -120,6 +120,7 @@ internal class AbstractToRealizedTest : ShortcutTestBase
         catch (Exception e)
         {
             this.Fail($"Unhandled exception: {e}");
+            UnhandledException = true;
             return;
         }
 
@@ -127,6 +128,7 @@ internal class AbstractToRealizedTest : ShortcutTestBase
         if (!OtherIsPlayer && (absRoom.realizedRoom != null || !absRoom.KeepAbstract))
         {
             this.Fail("Tested creature room was not kept abstract");
+            SetupFailed = true;
             return;
         }
 
