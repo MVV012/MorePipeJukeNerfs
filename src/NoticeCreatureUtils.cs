@@ -35,7 +35,6 @@ public static class NoticeCreatureUtils
 #if DEBUG
             CreatureTemplate.Relationship? oldRel = rep.dynamicRelationship?.currentRelationship;
 #endif
-
             // It's okay if game is single-threaded (Not okay otherwise)
             s_overrideVisualContact = true;
             rep.dynamicRelationship?.Update();
@@ -68,7 +67,6 @@ public static class NoticeCreatureUtils
         {
             var rep = tracking.abstractAI?.RealAI?.tracker?.CreatureNoticed(tracked);
             rep?.visualContact = false;
-            rep?.UpdateStateAndRelationship();
         }
         catch (Exception e)
         {

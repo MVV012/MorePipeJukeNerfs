@@ -20,7 +20,7 @@ internal class TestRunner
     public static void OnEnable()
     {
         TestLogID = new LogID("MorePipeJukeNerfsTests.log", LogAccess.FullAccess, register: true);
-        LogUtilsLogger.RemoveIntoOutroMessages(TestLogID);
+        LogUtilsLogger.UpdateProperties(TestLogID);
         TestLogger = new Logger(TestLogID);
         CombinedLogger = new Logger(LogTarget.Combiner.Combine(LogUtilsLogger.ID, TestLogID));
     }

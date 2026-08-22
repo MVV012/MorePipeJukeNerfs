@@ -18,7 +18,7 @@ sealed public class Plugin : BaseUnityPlugin
 {
     public const string GUID = "mvv012.morepipejukenerfs";
     public const string NAME = "More Pipe Juke Nerfs";
-    public const string VERSION = "0.5.0";
+    public const string VERSION = "0.6.0";
 
     private bool _isInit = false;
     internal static bool DebugWindowEnabled = false;
@@ -37,11 +37,13 @@ sealed public class Plugin : BaseUnityPlugin
         ShortcutPairTracking.ApplyHooks();
         NoticeCreatureUtils.ApplyHooks();
         GhostUtils.ApplyHooks();
+        PipeJukeNotifier.OnEnable();
+        CreatureFixes.ApplyHooks();
+
         PlayerShortcutTrackerCWT.ApplyHooks();
         ShortcutCounterReducer.ApplyHooks();
-        RemixUtils.ApplyHooks();
 
-        PipeJukeNotifier.OnEnable();
+        RemixUtils.ApplyHooks();
 
 #if DEBUG
         DebugOnEnable();

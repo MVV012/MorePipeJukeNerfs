@@ -70,6 +70,7 @@ internal class DebugImGUIWindow
     private static bool[]? otherCreatures = null;
 
     public static bool RunningTests { get; private set; } = false;
+    public static bool DontLogDebugInfo = false;
     private static int currentTestIndex = -1;
     private static long startTicks = -1;
     private static Stopwatch testStopwatch = null!;
@@ -78,6 +79,7 @@ internal class DebugImGUIWindow
     private static TestableGroup allTestsGroup = null!;
     private static List<TestableGroup> allTests = [];
     private static List<TestableGroup> completedTests = [];
+    private static (ShortcutTestResult Result, int Passed)[] completedResults = [];
     private static TestRunner testRunner = null!;
 
     private static void WindowContent()
@@ -131,6 +133,7 @@ internal class DebugImGUIWindow
 
             ImGUIComponents.EnumPicker("Report verbosity", ref reportVerbosity);
             ImGui.Checkbox("Assert no logged errors", ref assertNoLoggedErrors);
+            ImGui.Checkbox("Don't log debug info", ref DontLogDebugInfo);
 
             if (ImGui.BeginTabBar("testingTabBar"))
             {
@@ -295,6 +298,11 @@ internal class DebugImGUIWindow
                                 TestRunner.CombinedLogger.LogDebug($"{currentTestIndex} tests completed in {(int)totalTimeTaken.TotalMilliseconds} ms / {totalTimeTaken.TotalSeconds:0.00} s");
                                 showResults = true;
                                 LogUtils.Policy.DebugPolicy.ShowDebugLog = true;
+
+                                completedResults = completedTests
+                                    .Select(tests => tests.AllCases.OfType<ShortcutTestBase>().GroupBy(test => test.Name).Select(g => g.First()))
+                                    .Select(tests => (tests.Max(test => test.GetResult()), tests.Count(test => !test.HasFailed())))
+                                    .ToArray();
                             }
                         }
 
@@ -358,9 +366,7 @@ internal class DebugImGUIWindow
                                 ImGui.PushID(column);
                                 ImGui.TableSetColumnIndex(column + 1);
 
-                                ShortcutTestBase[] tests = completedTests[row * otherTemplates.Length + column].AllCases.OfType<ShortcutTestBase>().GroupBy(test => test.Name).Select(g => g.First()).ToArray();
-
-                                ShortcutTestResult res = tests.Select(test => test.GetResult()).Max();
+                                var (res, passed) = completedResults[row * otherTemplates.Length + column];
 
                                 Vector4 bgColor = res switch
                                 {
@@ -378,7 +384,7 @@ internal class DebugImGUIWindow
                                 };
 
                                 ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, ImGui.GetColorU32(bgColor));
-                                ImGui.TextColored(textColor, $"{tests.Count(test => !test.HasFailed())}");
+                                ImGui.TextColored(textColor, passed.ToString());
 
                                 ImGui.PopID();
                             }
