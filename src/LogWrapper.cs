@@ -67,11 +67,12 @@ internal static class LogWrapper
         BepInExLogger.Log(level, data);
     }
 
+#if DEBUG
     private static void LogUtilsLoggerOnEnable() => Debug.LogUtilsLogger.OnEnable();
     private static void LogUtilsLoggerOnDisable() => Debug.LogUtilsLogger.OnDisable();
     private static void LogUtilsLoggerLog(LogLevel level, object data)
     {
-        if (Debug.DebugImGUIWindow.RunningTests && level != LogLevel.Error)
+        if (Debug.DebugImGUIWindow.DontLogDebugInfo && level != LogLevel.Error)
         {
             return;
         }
@@ -79,4 +80,5 @@ internal static class LogWrapper
         Debug.LogUtilsLogger.Global.Log.Log(level, data);
     }
     private static string LogUtilsLoggerGetFilePath() => Debug.LogUtilsLogger.ID.Properties.CurrentFilePath;
+#endif
 }

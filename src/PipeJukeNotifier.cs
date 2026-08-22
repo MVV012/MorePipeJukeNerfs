@@ -1,3 +1,4 @@
+using MorePipeJukeNerfs;
 using MorePipeJukeNerfs.Shortcuts;
 
 namespace MorePipeJukeNerfs;
@@ -16,7 +17,7 @@ internal class PipeJukeNotifier
         ShortcutPairTracking.SecondCreatureExited -= SecondCreatureExited;
     }
 
-    private static void FirstCreatureExited(AbstractCreature cur, AbstractCreature other, Shortcuts.IShortcut shortcut)
+    private static void FirstCreatureExited(AbstractCreature cur, AbstractCreature other, IShortcut shortcut)
     {
         DebugLogInfo($"First exited: {cur} (other: {other})");
 
@@ -26,7 +27,7 @@ internal class PipeJukeNotifier
         OnPipeJuke(other, cur, shortcut.DestRoom, shortcut.DestCoord, pause: false, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
     }
 
-    private static void SecondCreatureExited(AbstractCreature cur, AbstractCreature other, Shortcuts.IShortcut shortcut)
+    private static void SecondCreatureExited(AbstractCreature cur, AbstractCreature other, IShortcut shortcut)
     {
         DebugLogInfo($"Second exited: {cur} (other: {other})");
 
@@ -41,30 +42,40 @@ internal class PipeJukeNotifier
         }
 
         // Updating state here is less accurate, but causes less exceptions
-        //OnPipeJuke(cur, other, shortcut.StartRoom, shortcut.StartCoord, stop: false, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
+        //OnPipeJuke(cur, other, shortcut.StartRoom, shortcut.StartCoord, pause: false, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
     }
 
     private static void OnPipeJuke(AbstractCreature cur, AbstractCreature other, AbstractRoom otherRoom, WorldCoordinate otherCoord, bool pause = false, bool setForbiddenRoomExit = false)
     {
-        Tracker.CreatureRepresentation? rep;
-        if (cur.TryGetRepresentation(other, out rep))
+        try
         {
-            if (Options.ShortcutNoticeSeen.Value)
+            CreatureFixes.PipeJuking = true;
+
+            Tracker.CreatureRepresentation? rep;
+            if (cur.TryGetRepresentation(other, out rep))
             {
-                rep.MoveToShortcutEntrance(otherRoom, otherCoord, pause, setForbiddenRoomExit);
-                rep.UpdateStateAndRelationship();
-            }
-        }
-        else
-        {
-            if (Options.ShortcutNoticeUnseen.Value)
-            {
-                cur.NoticeCreature(other);
-                if (cur.TryGetRepresentation(other, out rep))
+                if (Options.ShortcutNoticeSeen.Value)
                 {
                     rep.MoveToShortcutEntrance(otherRoom, otherCoord, pause, setForbiddenRoomExit);
+                    rep.UpdateStateAndRelationship();
                 }
             }
+            else
+            {
+                if (Options.ShortcutNoticeUnseen.Value)
+                {
+                    cur.NoticeCreature(other);
+                    if (cur.TryGetRepresentation(other, out rep))
+                    {
+                        rep.MoveToShortcutEntrance(otherRoom, otherCoord, pause, setForbiddenRoomExit);
+                        rep.UpdateStateAndRelationship();
+                    }
+                }
+            }
+        }
+        finally
+        {
+            CreatureFixes.PipeJuking = false;
         }
     }
 }
