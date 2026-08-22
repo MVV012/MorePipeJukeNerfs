@@ -9,6 +9,8 @@ internal class PipeJukeNotifier
     {
         ShortcutPairTracking.FirstCreatureExited += FirstCreatureExited;
         ShortcutPairTracking.SecondCreatureExited += SecondCreatureExited;
+
+        Plugin.OnDisableEvent += OnDisable;
     }
 
     public static void OnDisable()

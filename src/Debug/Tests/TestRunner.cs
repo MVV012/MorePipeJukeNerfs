@@ -23,6 +23,8 @@ internal class TestRunner
         LogUtilsLogger.UpdateProperties(TestLogID);
         TestLogger = new Logger(TestLogID);
         CombinedLogger = new Logger(LogTarget.Combiner.Combine(LogUtilsLogger.ID, TestLogID));
+
+        Plugin.OnDisableEvent += OnDisable;
     }
 
     public static void OnDisable()

@@ -24,6 +24,7 @@ sealed public class Plugin : BaseUnityPlugin
     internal static bool DebugWindowEnabled = false;
 
     internal static List<Hook> ManualHooks = [];
+    internal static event Action? OnDisableEvent;
 
     public void OnEnable()
     {
@@ -59,15 +60,9 @@ sealed public class Plugin : BaseUnityPlugin
         }
         ManualHooks.Clear();
 
-        PipeJukeNotifier.OnDisable();
+        OnDisableEvent?.Invoke();
+        OnDisableEvent = null;
 
-#if DEBUG
-        if (DebugWindowEnabled)
-        {
-            Debug.DebugImGUIWindow.OnDisable();
-            Debug.Tests.TestRunner.OnDisable();
-        }
-#endif
         LogWrapper.OnDisable();
     }
 

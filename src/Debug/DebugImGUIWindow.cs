@@ -29,6 +29,8 @@ internal class DebugImGUIWindow
             typeof(IMGUIContext).GetMethod(nameof(IMGUIContext.BlockWMEvent)),
             BlockWMEvent_Hook
         ));
+
+        Plugin.OnDisableEvent += OnDisable;
     }
 
     public static void OnDisable()
