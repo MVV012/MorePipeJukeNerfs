@@ -1,3 +1,4 @@
+using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
 using UnityEngine;
 
@@ -108,6 +109,20 @@ public static class CreatureRepresentationUtils
                         ghost.Unpause();
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Unpauses unpushable ghosts and updates representation coordinate if it was not defined
+        /// Should be called when creature exits shortcut
+        /// </summary>
+        public void CreatureExitedShortcut(AbstractRoom room, WorldCoordinate coord, bool setForbiddenRoomExit)
+        {
+            rep.UnpauseUnpushableGhosts();
+
+            if (!rep.lastSeenCoord.TileDefined && coord.TileDefined)
+            {
+                rep.MoveToShortcutEntrance(room, coord, pause: false, setForbiddenRoomExit);
             }
         }
     }

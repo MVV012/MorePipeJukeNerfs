@@ -388,4 +388,9 @@ public static class CreatureFixes
             return instr.MatchCallOrCallvirt<T>("get_" + propertyName);
         }
     }
+
+    extension(Type type)
+    {
+        public string GenericName => type.ToString().Replace("[", "<").Replace("]", ">").Replace("+", "/");
+    }
 }

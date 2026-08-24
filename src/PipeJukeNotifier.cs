@@ -35,12 +35,7 @@ internal class PipeJukeNotifier
 
         if (other.TryGetRepresentation(cur, out var rep))
         {
-            rep.UnpauseUnpushableGhosts();
-
-            if (!rep.lastSeenCoord.TileDefined && shortcut.DestCoord.TileDefined)
-            {
-                rep.MoveToShortcutEntrance(shortcut.DestRoom, shortcut.DestCoord, pause: false, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
-            }
+            rep.CreatureExitedShortcut(shortcut.DestRoom, shortcut.DestCoord, shortcut.Type == ShortcutData.Type.RoomExit);
         }
 
         // Updating state here is less accurate, but causes less exceptions

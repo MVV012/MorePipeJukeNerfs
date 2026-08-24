@@ -10,21 +10,24 @@ public class Options : OptionInterface
     public static Options Instance { get; } = new Options();
 
     // TODO: write descriptions
-    public static Configurable<bool> ShortcutNoticeCreatures { get; } = Bind(true);
+    public static Configurable<bool> ShortcutNoticeCreatures { get; } = Bind(true, "When two creatures enter shortcut from opposite ends and meet, they are made aware of each other");
     public static Configurable<bool> ShortcutNoticeUnseen { get; } = Bind(true);
     public static Configurable<bool> ShortcutNoticeSeen { get; } = Bind(true);
     public static Configurable<bool> ShortcutNoticeOnlyPlayer { get; } = Bind(false);
 
+    public static Configurable<bool> PredictableShortcuts { get; } = Bind(true, "When creature sees other entering shortcut, it will know exactly that other will come out from other side");
+    public static Configurable<bool> PredictableShortcutsOnlyPlayer { get; } = Bind(false);
+
     public static Configurable<bool> ReduceInvincibility { get; } = Bind(true);
     public static Configurable<int> InvincibilityStarting { get; } = Bind(40, min: 0, max: 40);
     public static Configurable<int> InvincibilityReduction { get; } = Bind(10, min: 0, max: 40);
-    public static Configurable<int> InvincibilityShortcutUses { get; } = Bind(3, min: 1, max: 99);
+    public static Configurable<int> InvincibilityShortcutUses { get; } = Bind(3, min: 2, max: 99);
     public static Configurable<int> InvincibilityMin { get; } = Bind(0, min: 0, max: 40);
 
     public static Configurable<bool> IncreaseShortcutDelay { get; } = Bind(true);
     public static Configurable<int> ShortcutDelayStarting { get; } = Bind(20, min: 20, max: 999);
     public static Configurable<int> ShortcutDelayIncrease { get; } = Bind(10, min: 0, max: 999);
-    public static Configurable<int> ShortcutDelayShortcutUses { get; } = Bind(5, min: 1, max: 99);
+    public static Configurable<int> ShortcutDelayShortcutUses { get; } = Bind(5, min: 2, max: 99);
     public static Configurable<int> ShortcutDelayMax { get; } = Bind(60, min: 20, max: 999);
 
     public override void Initialize()
@@ -36,21 +39,26 @@ public class Options : OptionInterface
 
         float offsetY = 10;
         List<UIelement> list = UIQueue.InitializeQueues(tab, 40, ref offsetY,
-            new LabelQueue($"More Pipe Juke Nerfs", FLabelAlignment.Center, bigText: true),
+            new LabelQueue($"More Pipe Juke Nerfs", FLabelAlignment.Center, bigText: true) { Height = 30 },
 
-            new CheckBoxQueue("Creatures notice other creatures they meet in shortcut:", ShortcutNoticeCreatures) { OffsetX = -10 },
+            new CheckBoxQueue("Creatures notice other creatures they meet in shortcut", ShortcutNoticeCreatures) { OffsetX = -10 },
             new CheckBoxQueue("Creatures that were not seen before are noticed", ShortcutNoticeUnseen),
             new CheckBoxQueue("Creatures that were already seen are noticed", ShortcutNoticeSeen),
             new CheckBoxQueue("Only player is noticed", ShortcutNoticeOnlyPlayer),
 
-            new SpaceQueue(40),
+            new SpaceQueue(22),
+
+            new CheckBoxQueue("More predictable shortcuts", PredictableShortcuts) { OffsetX = -10 },
+            new CheckBoxQueue("More predictable shortcuts only for player", PredictableShortcutsOnlyPlayer),
+
+            new SpaceQueue(22),
 
             new CheckBoxQueue("Reduce invincibility player gets after exiting shortcut:", ReduceInvincibility) { OffsetX = -10, RightFocusThis = false },
             new DurationInputQueue("Starting invincibility:", InvincibilityStarting) { LeftFocusTab = false, RightFocusThis = false },
             new DurationAndShortcutUsesQueue("Reduce by", InvincibilityReduction, InvincibilityShortcutUses) { LeftFocusTab = false },
             new DurationInputQueue("Minimal invincibility:", InvincibilityMin) { LeftFocusTab = false, RightFocusThis = false },
 
-            new SpaceQueue(40),
+            new SpaceQueue(22),
 
             new CheckBoxQueue("Increase delay before player can enter shortcut after exiting one:", IncreaseShortcutDelay) { OffsetX = -10, RightFocusThis = false },
             new DurationInputQueue("Starting delay:", ShortcutDelayStarting) { LeftFocusTab = false, RightFocusThis = false },
@@ -62,6 +70,9 @@ public class Options : OptionInterface
             ShortcutNoticeUnseen,
             ShortcutNoticeSeen,
             ShortcutNoticeOnlyPlayer
+        ], updateFocusables: true);
+        BindDependentConfigs(list, PredictableShortcuts, [
+            PredictableShortcutsOnlyPlayer
         ], updateFocusables: true);
         BindDependentConfigs(list, ReduceInvincibility, [
             InvincibilityStarting,
@@ -108,7 +119,7 @@ public class Options : OptionInterface
         {
             defaultString = defaultValue!.ToString();
         }
-        return string.IsNullOrWhiteSpace(description) ? $"Default: {defaultString}" : $"{description}, Default: {defaultString}";
+        return string.IsNullOrWhiteSpace(description) ? $"Default: {defaultString}" : $"{description}  -  Default: {defaultString}";
     }
 
     private static void BindDependentConfigs(List<UIelement> list, Configurable<bool> mainConfig, List<ConfigurableBase> otherConfigs, bool updateFocusables = false)

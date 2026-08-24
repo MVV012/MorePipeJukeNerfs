@@ -35,11 +35,14 @@ sealed public class Plugin : BaseUnityPlugin
         On.RainWorld.OnModsInit += RainWorld_OnModsInit;
 
         VesselShortcutCWT.ApplyHooks();
-        ShortcutPairTracking.ApplyHooks();
+        VesselRemovalTracking.ApplyHooks();
+        ShortcutPairTracking.OnEnable();
         NoticeCreatureUtils.ApplyHooks();
         GhostUtils.ApplyHooks();
-        PipeJukeNotifier.OnEnable();
         CreatureFixes.ApplyHooks();
+
+        PipeJukeNotifier.OnEnable();
+        PredictableShortcuts.OnEnable();
 
         PlayerShortcutTrackerCWT.ApplyHooks();
         ShortcutCounterReducer.ApplyHooks();

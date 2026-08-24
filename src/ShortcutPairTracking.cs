@@ -15,62 +15,17 @@ public static class ShortcutPairTracking
     public static event PairCreatureExitedHandler? FirstCreatureExited;
     public static event PairCreatureExitedHandler? SecondCreatureExited;
 
-    public static void ApplyHooks()
+    public static void OnEnable()
     {
-        On.ShortcutHandler.SpitOutCreature += ShortcutHandler_SpitOutCreature;
-        IL.ShortcutHandler.Update += ShortcutHandler_Update_ILHook;
-    }
+        VesselRemovalTracking.OnShortcutVesselRemoved += OnShortcutVesselRemoved;
 
-    private static void ShortcutHandler_SpitOutCreature(On.ShortcutHandler.orig_SpitOutCreature orig, ShortcutHandler self, ShortcutHandler.ShortCutVessel vessel)
-    {
-        orig(self, vessel);
-
-        OnShortcutVesselRemoved(self, vessel);
-    }
-
-    private static void ShortcutHandler_Update_ILHook(ILContext il)
-    {
-        try
+        Plugin.OnDisableEvent += () =>
         {
-            ILCursor c = new ILCursor(il);
-
-            c.GotoNext(
-                x => x.MatchCallvirt<AbstractWorldEntity>(nameof(AbstractWorldEntity.Abstractize))
-            );
-
-            // betweenRoomsWaitingLobby[num5]
-            c.GotoPrev(MoveType.After,
-                x => x.MatchLdarg(0),
-                x => x.MatchLdfld<ShortcutHandler>(nameof(ShortcutHandler.betweenRoomsWaitingLobby)),
-                x => x.MatchLdloc(8),
-                x => x.MatchCallvirt(typeof(List<ShortcutHandler.Vessel>).GenericName, "get_Item")
-            );
-            c.MoveAfterLabels();
-
-            c.EmitDelegate(BeforeBetweenRoomsVesselRemoval);
-        }
-        catch (Exception e)
-        {
-            ReleaseLog(LogLevel.Error, $"Failed to apply IL hook to ShortcutHandler.Update(). Exception: {e}");
-        }
-
-        static ShortcutHandler.Vessel BeforeBetweenRoomsVesselRemoval(ShortcutHandler.Vessel vessel)
-        {
-            if (vessel is ShortcutHandler.ShortCutVessel shortcutVessel)
-            {
-                OnShortcutVesselRemoved(shortcutVessel.room.world.game.shortcuts, shortcutVessel);
-            }
-
-            return vessel;
-        }
+            VesselRemovalTracking.OnShortcutVesselRemoved -= OnShortcutVesselRemoved;
+        };
     }
 
-    extension(Type type)
-    {
-        public string GenericName => type.ToString().Replace("[", "<").Replace("]", ">").Replace("+", "/");
-    }
-
-    private static void OnShortcutVesselRemoved(ShortcutHandler self, ShortcutHandler.ShortCutVessel vessel)
+    private static void OnShortcutVesselRemoved(ShortcutHandler shortcuts, ShortcutHandler.ShortCutVessel vessel, bool toAbstract)
     {
         if (!Options.ShortcutNoticeCreatures.Value)
         {
@@ -79,7 +34,7 @@ public static class ShortcutPairTracking
 
         if (vessel.TryGetShortcut(out IShortcut curShortcut))
         {
-            foreach (ShortcutHandler.ShortCutVessel otherVessel in GetAllShortCutVessels(self))
+            foreach (ShortcutHandler.ShortCutVessel otherVessel in GetAllShortCutVessels(shortcuts))
             {
                 if (otherVessel.TryGetShortcut(out IShortcut otherShortcut)
                     && curShortcut.IsOppositeDirection(otherShortcut)
