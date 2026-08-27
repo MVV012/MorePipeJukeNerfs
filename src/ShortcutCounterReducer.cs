@@ -15,19 +15,24 @@ internal static class ShortcutCounterReducer
     {
         orig(self, vessel);
 
+        if (!ReduceInvincibility.Value && !IncreaseShortcutDelay.Value)
+        {
+            return;
+        }
+
         if (vessel.creature is Player { isNPC: false } player && vessel.TryGetShortcut(out IShortcut shortcut))
         {
-            player.ShortcutTracker.ExitedShortcut(shortcut);
+            int shortcutUses = player.ShortcutUsesTracker.ExitedShortcut(shortcut);
 
             if (ReduceInvincibility.Value)
             {
-                int invincibility = GetNewRoomInvincibility(player.ShortcutTracker.RepeatingShortcutCount);
+                int invincibility = GetNewRoomInvincibility(shortcutUses);
                 player.newToRoomInvinsibility = invincibility;
                 player.cantBeGrabbedCounter = Custom.IntClamp(invincibility, 0, 30);
             }
             if (IncreaseShortcutDelay.Value)
             {
-                player.shortcutDelay = GetShortcutDelay(player.ShortcutTracker.RepeatingShortcutCount);
+                player.shortcutDelay = GetShortcutDelay(shortcutUses);
             }
         }
     }

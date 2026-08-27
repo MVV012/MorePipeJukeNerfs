@@ -27,8 +27,10 @@ public class Options : OptionInterface
     public static Configurable<bool> IncreaseShortcutDelay { get; } = Bind(true);
     public static Configurable<int> ShortcutDelayStarting { get; } = Bind(20, min: 20, max: 999);
     public static Configurable<int> ShortcutDelayIncrease { get; } = Bind(10, min: 0, max: 999);
-    public static Configurable<int> ShortcutDelayShortcutUses { get; } = Bind(5, min: 2, max: 99);
+    public static Configurable<int> ShortcutDelayShortcutUses { get; } = Bind(6, min: 2, max: 99);
     public static Configurable<int> ShortcutDelayMax { get; } = Bind(60, min: 20, max: 999);
+
+    public static Configurable<int> ShortcutUsesResetTime { get; } = Bind(8 * 40, min: 1 * 40, max: 60 * 40, "Amount of repeating uses of shortcut resets after not using it for this time"); // For now unconfigurable
 
     public override void Initialize()
     {

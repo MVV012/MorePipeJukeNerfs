@@ -19,6 +19,7 @@ internal static class LogUtilsLogger
         ID = new LogID("MorePipeJukeNerfs.log", LogAccess.FullAccess, register: true);
         ID.Properties.ReadOnly = false;
         ID.Properties.ShowCategories.Enable();
+        ID.Properties.ConsoleIDs.Add(ConsoleID.BepInEx);
         UpdateProperties(ID);
         ID.Properties.ReadOnly = true;
 
