@@ -18,8 +18,6 @@ public class ShortcutUsesTracker
         info.Uses++;
         info.TicksSinceUse = 0;
 
-        DebugLogInfo($"Player exited {shortcut}, uses: {info.Uses}");
-
         return info.Uses;
     }
 
@@ -37,7 +35,6 @@ public class ShortcutUsesTracker
         }
         foreach (IShortcut shortcut in toRemove)
         {
-            DebugLogInfo($"Removed: {shortcut}, uses: {_shortcutUses[shortcut].Uses}");
             _shortcutUses.Remove(shortcut);
         }
     }
