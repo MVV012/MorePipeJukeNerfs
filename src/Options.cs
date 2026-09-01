@@ -9,28 +9,27 @@ public class Options : OptionInterface
 {
     public static Options Instance { get; } = new Options();
 
-    // TODO: write descriptions
     public static Configurable<bool> ShortcutNoticeCreatures { get; } = Bind(true, "When two creatures enter shortcut from opposite ends and meet, they are made aware of each other");
-    public static Configurable<bool> ShortcutNoticeUnseen { get; } = Bind(true);
-    public static Configurable<bool> ShortcutNoticeSeen { get; } = Bind(true);
-    public static Configurable<bool> ShortcutNoticeOnlyPlayer { get; } = Bind(false);
+    public static Configurable<bool> ShortcutNoticeUnseen { get; } = Bind(true, "Creature that didn't know about another creature before meeting will notice it");
+    public static Configurable<bool> ShortcutNoticeSeen { get; } = Bind(true, "Creature that already knew about another creature before meeting will be made aware of it's position and state");
+    public static Configurable<bool> ShortcutNoticeOnlyPlayer { get; } = Bind(false, "Only player will be noticed when creatures meet in shortcut");
 
     public static Configurable<bool> PredictableShortcuts { get; } = Bind(true, "When creature sees other entering shortcut, it will know exactly that other will come out from other side");
-    public static Configurable<bool> PredictableShortcutsOnlyPlayer { get; } = Bind(false);
+    public static Configurable<bool> PredictableShortcutsOnlyPlayer { get; } = Bind(false, "More predictable shortcuts option will only work for creatures seeing player");
 
-    public static Configurable<bool> ReduceInvincibility { get; } = Bind(true);
-    public static Configurable<int> InvincibilityStarting { get; } = Bind(40, min: 0, max: 40);
-    public static Configurable<int> InvincibilityReduction { get; } = Bind(10, min: 0, max: 40);
-    public static Configurable<int> InvincibilityShortcutUses { get; } = Bind(3, min: 2, max: 99);
-    public static Configurable<int> InvincibilityMin { get; } = Bind(0, min: 0, max: 40);
+    public static Configurable<bool> IncreaseShortcutDelay { get; } = Bind(true, "Increases delay before player can enter shortcut again dependent on how many times same shortcut was used");
+    public static Configurable<int> ShortcutDelayStarting { get; } = Bind(20, min: 20, max: 999, "Starting shortcut delay, by default equal to unmodded value");
+    public static Configurable<int> ShortcutDelayIncrease { get; } = Bind(10, min: 0, max: 999, "Shortcut delay will increase by this amount for each shortcut use");
+    public static Configurable<int> ShortcutDelayShortcutUses { get; } = Bind(6, min: 2, max: 99, "Shortcut delay will start increasing after using same shortcut this many times");
+    public static Configurable<int> ShortcutDelayMax { get; } = Bind(60, min: 20, max: 999, "Maximum shortcut delay that can be reached");
 
-    public static Configurable<bool> IncreaseShortcutDelay { get; } = Bind(true);
-    public static Configurable<int> ShortcutDelayStarting { get; } = Bind(20, min: 20, max: 999);
-    public static Configurable<int> ShortcutDelayIncrease { get; } = Bind(10, min: 0, max: 999);
-    public static Configurable<int> ShortcutDelayShortcutUses { get; } = Bind(6, min: 2, max: 99);
-    public static Configurable<int> ShortcutDelayMax { get; } = Bind(60, min: 20, max: 999);
+    public static Configurable<bool> ReduceInvincibility { get; } = Bind(true, "Reduces player's invincibility after exiting shortcut dependent on how many times same shortcut was used");
+    public static Configurable<int> InvincibilityStarting { get; } = Bind(40, min: 0, max: 40, "Starting invincibility duration, by default equal to unmodded value");
+    public static Configurable<int> InvincibilityReduction { get; } = Bind(10, min: 0, max: 40, "Invincibility will decrease by this amount for each shortcut use");
+    public static Configurable<int> InvincibilityShortcutUses { get; } = Bind(3, min: 2, max: 99, "Invincibility will start decreasing after using same shortcut this many times");
+    public static Configurable<int> InvincibilityMin { get; } = Bind(0, min: 0, max: 40, "Minimal invincibility duration that can be reached");
 
-    public static Configurable<int> ShortcutUsesResetTime { get; } = Bind(8 * 40, min: 1 * 40, max: 60 * 40, "Amount of repeating uses of shortcut resets after not using it for this time"); // For now unconfigurable
+    public static Configurable<int> ShortcutUsesResetTime { get; } = Bind(8 * 40, min: 1 * 40, max: 60 * 40, "Amount of repeating uses of same shortcut resets after not using it for this time"); // For now unconfigurable
 
     public override void Initialize()
     {
@@ -55,17 +54,17 @@ public class Options : OptionInterface
 
             new SpaceQueue(22),
 
-            new CheckBoxQueue("Reduce invincibility player gets after exiting shortcut:", ReduceInvincibility) { OffsetX = -10, RightFocusThis = false },
-            new DurationInputQueue("Starting invincibility:", InvincibilityStarting) { LeftFocusTab = false, RightFocusThis = false },
-            new DurationAndShortcutUsesQueue("Reduce by", InvincibilityReduction, InvincibilityShortcutUses) { LeftFocusTab = false },
-            new DurationInputQueue("Minimal invincibility:", InvincibilityMin) { LeftFocusTab = false, RightFocusThis = false },
-
-            new SpaceQueue(22),
-
             new CheckBoxQueue("Increase delay before player can enter shortcut after exiting one:", IncreaseShortcutDelay) { OffsetX = -10, RightFocusThis = false },
             new DurationInputQueue("Starting delay:", ShortcutDelayStarting) { LeftFocusTab = false, RightFocusThis = false },
             new DurationAndShortcutUsesQueue("Increase by", ShortcutDelayIncrease, ShortcutDelayShortcutUses) { LeftFocusTab = false },
-            new DurationInputQueue("Maximum delay:", ShortcutDelayMax) { LeftFocusTab = false, RightFocusThis = false }
+            new DurationInputQueue("Maximum delay:", ShortcutDelayMax) { LeftFocusTab = false, RightFocusThis = false },
+
+            new SpaceQueue(22),
+
+            new CheckBoxQueue("Reduce invincibility player gets after exiting shortcut:", ReduceInvincibility) { OffsetX = -10, RightFocusThis = false },
+            new DurationInputQueue("Starting invincibility:", InvincibilityStarting) { LeftFocusTab = false, RightFocusThis = false },
+            new DurationAndShortcutUsesQueue("Reduce by", InvincibilityReduction, InvincibilityShortcutUses) { LeftFocusTab = false },
+            new DurationInputQueue("Minimal invincibility:", InvincibilityMin) { LeftFocusTab = false, RightFocusThis = false }
         );
 
         BindDependentConfigs(list, ShortcutNoticeCreatures, [
