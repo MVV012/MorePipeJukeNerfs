@@ -72,7 +72,7 @@ internal static class LogWrapper
     private static void LogUtilsLoggerOnDisable() => Debug.LogUtilsLogger.OnDisable();
     private static void LogUtilsLoggerLog(LogLevel level, object data)
     {
-        if (Debug.DebugImGUIWindow.DontLogDebugInfo && level != LogLevel.Error)
+        if (Debug.DebugImGUIWindow.DontLogDebugInfo && level == LogLevel.Info || level == LogLevel.Debug)
         {
             return;
         }

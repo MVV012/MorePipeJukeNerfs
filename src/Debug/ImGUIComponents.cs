@@ -50,7 +50,7 @@ internal static class ImGUIComponents
         }
     }
 
-    private static int[] shortcutPos = new int[2]; // TODO: Separate inputs
+    private static int[] shortcutPos = new int[2];
     public static void SuckIntoShortcut(Creature real)
     {
         ImGui.SetNextItemWidth(-165);

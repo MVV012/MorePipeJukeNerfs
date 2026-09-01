@@ -55,6 +55,7 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
     }
 
     public static bool AssertNoLoggedErrors = true;
+    public static Lazy<CompositeLogCategory> CheckedErrorCategories = new(() => LogCategory.ErrorFlags | LogCategory.Warning);
 
     public ShortcutTestInfo Info { get; }
     public abstract LocationInfoBase LocationBase { get; }
@@ -170,7 +171,7 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
         {
             logRequestHandler = request =>
             {
-                if (request.Data.ID == LogUtilsLogger.ID && LogCategory.IsErrorCategory(request.Data.Category))
+                if (request.Data.ID == LogUtilsLogger.ID && CheckedErrorCategories.Value.Contains(request.Data.Category))
                 {
                     errorLogged = true;
                 }

@@ -49,7 +49,14 @@ public static class NoticeCreatureUtils
         }
         catch (Exception e)
         {
-            ReleaseLog(LogLevel.Error, $"Failed to update relationship of {rep.parent.AI.creature} towards {rep.representedCreature}. Exception: {e}");
+            if (rep.dynamicRelationship?.currentRelationship.type == CreatureTemplate.Relationship.Type.SocialDependent)
+            {
+                ReleaseLog(LogLevel.Error, $"Failed to update relationship of {rep.parent.AI.creature} towards {rep.representedCreature}. Exception: {e}");
+            }
+            else
+            {
+                ReleaseLog(LogLevel.Warning, $"Probably non-critical exception caught while updating relationship of {rep.parent.AI.creature} towards {rep.representedCreature}: {e}");
+            }
         }
         finally
         {
@@ -70,7 +77,15 @@ public static class NoticeCreatureUtils
         }
         catch (Exception e)
         {
-            ReleaseLog(LogLevel.Error, $"Failed to make {tracking} notice {tracked}. Exception: {e}");
+            bool creatureNoticed = tracking.TryGetRepresentation(tracked, out _);
+            if (!creatureNoticed)
+            {
+                ReleaseLog(LogLevel.Error, $"Failed to make {tracking} notice {tracked}. Exception: {e}");
+            }
+            else
+            {
+                ReleaseLog(LogLevel.Warning, $"Non-critical exception caught while making {tracking} notice {tracked}: {e}");
+            }
         }
     }
 }
