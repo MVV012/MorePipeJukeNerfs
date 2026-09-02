@@ -20,13 +20,13 @@ public class Options : OptionInterface
     public static Configurable<bool> IncreaseShortcutDelay { get; } = Bind(true, "Increases delay before player can enter shortcut again dependent on how many times same shortcut was used");
     public static Configurable<int> ShortcutDelayStarting { get; } = Bind(20, min: 20, max: 999, "Starting shortcut delay, by default equal to unmodded value");
     public static Configurable<int> ShortcutDelayIncrease { get; } = Bind(10, min: 0, max: 999, "Shortcut delay will increase by this amount for each shortcut use");
-    public static Configurable<int> ShortcutDelayShortcutUses { get; } = Bind(6, min: 2, max: 99, "Shortcut delay will start increasing after using same shortcut this many times");
+    public static Configurable<int> ShortcutDelayShortcutUses { get; } = Bind(5, min: 2, max: 99, "Shortcut delay will start increasing after using same shortcut this many times");
     public static Configurable<int> ShortcutDelayMax { get; } = Bind(60, min: 20, max: 999, "Maximum shortcut delay that can be reached");
 
     public static Configurable<bool> ReduceInvincibility { get; } = Bind(true, "Reduces player's invincibility after exiting shortcut dependent on how many times same shortcut was used");
     public static Configurable<int> InvincibilityStarting { get; } = Bind(40, min: 0, max: 40, "Starting invincibility duration, by default equal to unmodded value");
     public static Configurable<int> InvincibilityReduction { get; } = Bind(10, min: 0, max: 40, "Invincibility will decrease by this amount for each shortcut use");
-    public static Configurable<int> InvincibilityShortcutUses { get; } = Bind(3, min: 2, max: 99, "Invincibility will start decreasing after using same shortcut this many times");
+    public static Configurable<int> InvincibilityShortcutUses { get; } = Bind(8, min: 2, max: 99, "Invincibility will start decreasing after using same shortcut this many times");
     public static Configurable<int> InvincibilityMin { get; } = Bind(0, min: 0, max: 40, "Minimal invincibility duration that can be reached");
 
     public static Configurable<int> ShortcutUsesResetTime { get; } = Bind(8 * 40, min: 1 * 40, max: 60 * 40, "Amount of repeating uses of same shortcut resets after not using it for this time"); // For now unconfigurable
