@@ -42,6 +42,8 @@ public static class CreatureRepresentationUtils
                 }
                 Tracker.Ghost ghost = elabRep.ghosts[0];
                 ghost.generation = 0;
+                ghost.lastCoord = coord;
+
                 if (room.realizedRoom != null)
                 {
                     IntVector2 entraceHoleDirection = room.realizedRoom.ShorcutEntranceHoleDirection(coord.Tile);
@@ -53,7 +55,6 @@ public static class CreatureRepresentationUtils
                     ghost.coord = coord;
                     ghost.vel = Vector2.zero;
                 }
-                ghost.lastCoord = ghost.coord;
                 if (pause)
                 {
                     ghost.Pause();

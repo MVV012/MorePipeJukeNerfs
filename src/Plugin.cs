@@ -100,13 +100,18 @@ sealed public class Plugin : BaseUnityPlugin
 
         if (disabledDeps.Count == 0 && LogWrapper.LogUtilsUsed)
         {
-            Debug.DebugImGUIWindow.OnEnable();
-            Debug.Tests.TestRunner.OnEnable();
-            Debug.Tests.RoomRealizingRestrictions.ApplyHooks();
-            Debug.Tests.PlayerGraphicsInitiateSpritesFix.ApplyHooks();
+            TrueDebugOnEnable();
 
             DebugWindowEnabled = true;
         }
+    }
+
+    public void TrueDebugOnEnable()
+    {
+        Debug.DebugImGUIWindow.OnEnable();
+        Debug.Tests.TestRunner.OnEnable();
+        Debug.Tests.RoomRealizingRestrictions.ApplyHooks();
+        Debug.Tests.PlayerGraphicsInitiateSpritesFix.ApplyHooks();
     }
 #endif
 }

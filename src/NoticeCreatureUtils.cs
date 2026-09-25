@@ -37,6 +37,8 @@ public static class NoticeCreatureUtils
 #endif
             // It's okay if game is single-threaded (Not okay otherwise)
             s_overrideVisualContact = true;
+            rep.visualContact = true;
+
             rep.dynamicRelationship?.Update();
 
 #if DEBUG
@@ -61,6 +63,7 @@ public static class NoticeCreatureUtils
         finally
         {
             s_overrideVisualContact = false;
+            rep.visualContact = false;
         }
     }
 
