@@ -1,13 +1,13 @@
 using System.Runtime.CompilerServices;
 using Menu.Remix.MixedUI;
 using Menu.Remix.MixedUI.ValueTypes;
-using MorePipeJukeNerfs.Remix;
 
-namespace MorePipeJukeNerfs;
+namespace MorePipeJukeNerfs.Remix;
 
-public class Options : OptionInterface
+[RWGenerators.GenerateConfigAccessors("MorePipeJukeNerfs.Config")]
+public class RemixMenu : OptionInterface
 {
-    public static Options Instance { get; } = new Options();
+    public static RemixMenu Instance { get; } = new RemixMenu();
 
     public static Configurable<bool> ShortcutNoticeCreatures { get; } = Bind(true, "When two creatures enter shortcut from opposite ends and meet, they are made aware of each other");
     public static Configurable<bool> ShortcutNoticeUnseen { get; } = Bind(true, "Creature that didn't know about another creature before meeting will notice it");
@@ -183,5 +183,5 @@ public class Options : OptionInterface
         mainFocusable.NextFocusable[(int)UIfocusable.NextDirection.Down].SetNextFocusable(UIfocusable.NextDirection.Right, shortcutUsesElement);
     }
 
-    private Options(): base() {}
+    private RemixMenu(): base() {}
 }

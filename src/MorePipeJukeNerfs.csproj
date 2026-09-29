@@ -10,6 +10,7 @@
     <OutputPath>../mod/newest/plugins</OutputPath>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +24,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+	<ProjectReference Include="..\RWGenerators\RWGenerators.csproj" PrivateAssets="all"
+					  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' != 'Debug'">

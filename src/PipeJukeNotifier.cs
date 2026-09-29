@@ -51,7 +51,7 @@ internal class PipeJukeNotifier
             Tracker.CreatureRepresentation? rep;
             if (cur.TryGetRepresentation(other, out rep))
             {
-                if (Options.ShortcutNoticeSeen.Value)
+                if (Config.ShortcutNoticeSeen)
                 {
                     rep.MoveToShortcutEntrance(otherRoom, otherCoord, pause, setForbiddenRoomExit);
                     rep.UpdateStateAndRelationship();
@@ -59,7 +59,7 @@ internal class PipeJukeNotifier
             }
             else
             {
-                if (Options.ShortcutNoticeUnseen.Value)
+                if (Config.ShortcutNoticeUnseen)
                 {
                     cur.NoticeCreature(other);
                     if (cur.TryGetRepresentation(other, out rep))

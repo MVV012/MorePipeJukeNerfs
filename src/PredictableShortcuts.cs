@@ -19,14 +19,14 @@ public class PredictableShortcuts
     {
         orig(self);
 
-        if (!Options.PredictableShortcuts.Value)
+        if (!Config.PredictableShortcuts)
         {
             return;
         }
 
         Creature? creature = self.representedCreature.realizedCreature;
         if (creature != null
-            && (!Options.PredictableShortcutsOnlyPlayer.Value || creature is Player { isNPC: false })
+            && (!Config.PredictableShortcutsOnlyPlayer || creature is Player { isNPC: false })
             && creature.inShortcut
             && creature.inShortcutVessel != null
             && creature.inShortcutVessel.TryGetShortcut(out IShortcut shortcut))
@@ -38,7 +38,7 @@ public class PredictableShortcuts
 
     private static void OnShortcutVesselRemoved(ShortcutHandler shortcuts, ShortcutHandler.ShortCutVessel vessel, bool toAbstract)
     {
-        if (!Options.PredictableShortcuts.Value)
+        if (!Config.PredictableShortcuts)
         {
             return;
         }

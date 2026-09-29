@@ -76,15 +76,15 @@ sealed public class Plugin : BaseUnityPlugin
         if (_isInit) return;
         _isInit = true;
 
-        MachineConnector.SetRegisteredOI(GUID, Options.Instance);
+        MachineConnector.SetRegisteredOI(GUID, RemixMenu.Instance);
     }
 
 #if DEBUG
     public void DebugOnEnable()
     {
         // For Rain Reloader, does nothing without it
-        MachineConnector.SetRegisteredOI(GUID, Options.Instance);
-        MachineConnector.ReloadConfig(Options.Instance);
+        MachineConnector.SetRegisteredOI(GUID, RemixMenu.Instance);
+        MachineConnector.ReloadConfig(RemixMenu.Instance);
 
         List<string> debugDeps = ["rwimgui", "maxi-mol.mousedrag", "warp"];
         List<string> disabledDeps = debugDeps.Where(dep => !ModManager.ActiveMods.Exists(mod => mod.id == dep)).ToList();

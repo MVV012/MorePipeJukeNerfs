@@ -1,6 +1,5 @@
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
-using static MorePipeJukeNerfs.Options;
 
 namespace MorePipeJukeNerfs;
 
@@ -15,7 +14,7 @@ internal static class ShortcutCounterReducer
     {
         orig(self, vessel);
 
-        if (!ReduceInvincibility.Value && !IncreaseShortcutDelay.Value)
+        if (!Config.ReduceInvincibility && !Config.IncreaseShortcutDelay)
         {
             return;
         }
@@ -24,13 +23,13 @@ internal static class ShortcutCounterReducer
         {
             int shortcutUses = player.ShortcutUsesTracker.ExitedShortcut(shortcut);
 
-            if (ReduceInvincibility.Value)
+            if (Config.ReduceInvincibility)
             {
                 int invincibility = GetNewRoomInvincibility(shortcutUses);
                 player.newToRoomInvinsibility = invincibility;
                 player.cantBeGrabbedCounter = Custom.IntClamp(invincibility, 0, 30);
             }
-            if (IncreaseShortcutDelay.Value)
+            if (Config.IncreaseShortcutDelay)
             {
                 player.shortcutDelay = GetShortcutDelay(shortcutUses);
             }
@@ -39,32 +38,32 @@ internal static class ShortcutCounterReducer
 
     private static int GetNewRoomInvincibility(int repeatingShortcutCount)
     {
-        if (repeatingShortcutCount < InvincibilityShortcutUses.Value)
+        if (repeatingShortcutCount < Config.InvincibilityShortcutUses)
         {
-            return InvincibilityStarting.Value;
+            return Config.InvincibilityStarting;
         }
         else
         {
             return Custom.IntClamp(
-                InvincibilityStarting.Value - (repeatingShortcutCount - InvincibilityShortcutUses.Value + 1) * InvincibilityReduction.Value,
-                InvincibilityMin.Value,
-                InvincibilityStarting.Value
+                Config.InvincibilityStarting - (repeatingShortcutCount - Config.InvincibilityShortcutUses + 1) * Config.InvincibilityReduction,
+                Config.InvincibilityMin,
+                Config.InvincibilityStarting
             );
         }
     }
 
     private static int GetShortcutDelay(int repeatingShortcutCount)
     {
-        if (repeatingShortcutCount < ShortcutDelayShortcutUses.Value)
+        if (repeatingShortcutCount < Config.ShortcutDelayShortcutUses)
         {
-            return ShortcutDelayStarting.Value;
+            return Config.ShortcutDelayStarting;
         }
         else
         {
             return Custom.IntClamp(
-                ShortcutDelayStarting.Value + (repeatingShortcutCount - ShortcutDelayShortcutUses.Value + 1) * ShortcutDelayIncrease.Value,
-                ShortcutDelayStarting.Value,
-                ShortcutDelayMax.Value
+                Config.ShortcutDelayStarting + (repeatingShortcutCount - Config.ShortcutDelayShortcutUses + 1) * Config.ShortcutDelayIncrease,
+                Config.ShortcutDelayStarting,
+                Config.ShortcutDelayMax
             );
         }
     }

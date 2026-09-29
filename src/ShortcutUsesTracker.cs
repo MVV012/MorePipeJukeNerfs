@@ -28,7 +28,7 @@ public class ShortcutUsesTracker
         {
             info.TicksSinceUse++;
 
-            if (info.TicksSinceUse >= Options.ShortcutUsesResetTime.Value)
+            if (info.TicksSinceUse >= Config.ShortcutUsesResetTime)
             {
                 toRemove.Add(shortcut);
             }

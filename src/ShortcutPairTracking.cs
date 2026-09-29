@@ -1,8 +1,6 @@
-using MonoMod.Cil;
 using BepInEx.Logging;
 using MorePipeJukeNerfs.Shortcuts;
 using System.Runtime.CompilerServices;
-using MonoMod.Utils;
 
 namespace MorePipeJukeNerfs;
 
@@ -27,7 +25,7 @@ public static class ShortcutPairTracking
 
     private static void OnShortcutVesselRemoved(ShortcutHandler shortcuts, ShortcutHandler.ShortCutVessel vessel, bool toAbstract)
     {
-        if (!Options.ShortcutNoticeCreatures.Value)
+        if (!Config.ShortcutNoticeCreatures)
         {
             return;
         }
@@ -62,7 +60,7 @@ public static class ShortcutPairTracking
 
     private static bool ShouldPairBeTracked(AbstractCreature first, AbstractCreature second)
     {
-        if (Options.ShortcutNoticeOnlyPlayer.Value
+        if (Config.ShortcutNoticeOnlyPlayer
             && first.realizedCreature is not Player { isNPC: false }
             && second.realizedCreature is not Player { isNPC: false })
         {

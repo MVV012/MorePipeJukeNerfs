@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="RWGenerators/RWGenerators.csproj" Id="481c4208-984e-4da0-8533-745fb975b064" />
   <Project Path="src/MorePipeJukeNerfs.csproj" />
 </Solution>
