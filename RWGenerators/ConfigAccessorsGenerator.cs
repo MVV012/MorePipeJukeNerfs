@@ -21,7 +21,7 @@ public class ConfigAccessorsGenerator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(AddAttribute);
 
         IncrementalValuesProvider<GeneratedClassInfo> generatedClasses = context.SyntaxProvider
-            .ForAttributeWithMetadataName("RWGenerators.GenerateConfigAccessorsAttribute",
+            .ForAttributeWithMetadataName($"RWGenerators.{AttributeName}",
                 (_, _) => true,
                 GetGeneratedClassInfo)
             .Where(x => x != null)!;
@@ -38,8 +38,9 @@ using System;
 namespace RWGenerators;
 
 /// <summary>
-/// Generate class with accessors to values of static Configurable<T> fields and properties
+/// Generate class with accessors to values of static <see cref=""Configurable{{T}}"" /> fields and properties
 /// </summary>
+/// <param name=""className"">Generated class name. Namespace can be specified (""Namespace.ClassName""), otherwise current namespace will be used</param>
 [Microsoft.CodeAnalysis.Embedded]
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public class {AttributeName}(string className) : Attribute
