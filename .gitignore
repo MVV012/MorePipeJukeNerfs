@@ -492,3 +492,6 @@ lib
 
 # Folder with debug code
 !src/Debug
+
+# Build result
+build
