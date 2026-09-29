@@ -13,13 +13,9 @@ using System.Security.Permissions;
 
 namespace MorePipeJukeNerfs;
 
-[BepInPlugin(GUID, NAME, VERSION)]
-sealed public class Plugin : BaseUnityPlugin
+[BepInAutoPlugin]
+sealed public partial class Plugin : BaseUnityPlugin
 {
-    public const string GUID = "mvv012.morepipejukenerfs";
-    public const string NAME = "More Pipe Juke Nerfs";
-    public const string VERSION = "1.0.0";
-
     private bool _isInit = false;
     internal static bool DebugWindowEnabled = false;
 
@@ -76,14 +72,14 @@ sealed public class Plugin : BaseUnityPlugin
         if (_isInit) return;
         _isInit = true;
 
-        MachineConnector.SetRegisteredOI(GUID, RemixMenu.Instance);
+        MachineConnector.SetRegisteredOI(Id, RemixMenu.Instance);
     }
 
 #if DEBUG
     public void DebugOnEnable()
     {
         // For Rain Reloader, does nothing without it
-        MachineConnector.SetRegisteredOI(GUID, RemixMenu.Instance);
+        MachineConnector.SetRegisteredOI(Id, RemixMenu.Instance);
         MachineConnector.ReloadConfig(RemixMenu.Instance);
 
         List<string> debugDeps = ["rwimgui", "maxi-mol.mousedrag", "warp"];

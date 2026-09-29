@@ -43,7 +43,7 @@ namespace RWGenerators;
 /// <param name=""className"">Generated class name. Namespace can be specified (""Namespace.ClassName""), otherwise current namespace will be used</param>
 [Microsoft.CodeAnalysis.Embedded]
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-public class {AttributeName}(string className) : Attribute
+internal class {AttributeName}(string className) : Attribute
 {{
     public string ClassName {{ get; }} = className;
 }}");

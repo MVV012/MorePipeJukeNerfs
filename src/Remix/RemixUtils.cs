@@ -14,10 +14,10 @@ public static class RemixUtils
     private static List<UIfocusable> ConfigContainer_GetFocusables(On.Menu.Remix.ConfigContainer.orig_GetFocusables orig, ConfigContainer self)
     {
         List<UIfocusable> list = orig(self);
-        if (ConfigContainer.activeTab?.owner?.mod.id == Plugin.GUID)
+        if (ConfigContainer.activeTab?.owner?.mod.id == Plugin.Id)
         {
             // Make greyed out UIfocusables of my mod remix menu unfocusable
-            return list.Where(element => !(element.tab?.owner?.mod.id == Plugin.GUID && element.greyedOut)).ToList();
+            return list.Where(element => !(element.tab?.owner?.mod.id == Plugin.Id && element.greyedOut)).ToList();
         }
         return list;
     }
