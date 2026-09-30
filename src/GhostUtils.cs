@@ -4,8 +4,8 @@ namespace MorePipeJukeNerfs;
 
 public static class GhostUtils
 {
-    private static readonly ConditionalWeakTable<Tracker.Ghost, GhostPushable> s_ghostPushable = new();
-    private class GhostPushable()
+    internal static ConditionalWeakTable<Tracker.Ghost, GhostPushable> s_ghostPushable = new();
+    internal class GhostPushable()
     {
         public bool Pushable { get; set; } = true;
     }

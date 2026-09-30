@@ -45,6 +45,9 @@ sealed public partial class Plugin : BaseUnityPlugin
 
         RemixUtils.ApplyHooks();
 
+        On.RainWorldGame.ShutDownProcess += RainWorldGame_ShutDownProcess;
+        On.OverWorld.WorldLoaded += OverWorld_WorldLoaded;
+
 #if DEBUG
         DebugOnEnable();
 #endif
@@ -73,6 +76,37 @@ sealed public partial class Plugin : BaseUnityPlugin
         _isInit = true;
 
         MachineConnector.SetRegisteredOI(Id, RemixMenu.Instance);
+    }
+
+    private void RainWorldGame_ShutDownProcess(On.RainWorldGame.orig_ShutDownProcess orig, RainWorldGame self)
+    {
+        orig(self);
+
+        ClearAllCWTs();
+    }
+
+    private void OverWorld_WorldLoaded(On.OverWorld.orig_WorldLoaded orig, OverWorld self, bool warpUsed)
+    {
+        orig(self, warpUsed);
+
+        ClearAllCWTs();
+    }
+
+    private void ClearAllCWTs()
+    {
+        // Temporary fix of potential memory leaks
+        VesselShortcutCWT.s_shortcuts = new();
+        ShortcutPairTracking.s_metCreatures = new();
+        GhostUtils.s_ghostPushable = new();
+        PlayerShortcutTrackerCWT.s_shortcutUsesTrackers = new();
+        PredictableShortcuts.s_vesselSeenBy = new();
+
+#if DEBUG
+        if (DebugWindowEnabled)
+        {
+            Debug.Tests.RoomRealizingRestrictions.s_realizingRestrictions = new();
+        }
+#endif
     }
 
 #if DEBUG

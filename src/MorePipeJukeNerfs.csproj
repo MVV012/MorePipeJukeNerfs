@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>mvv012.morepipejukenerfs</AssemblyName>
     <AssemblyTitle>More Pipe Juke Nerfs</AssemblyTitle>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <UpdateModinfoAtPath>../mod/modinfo.json</UpdateModinfoAtPath>
 
     <TargetFramework>net48</TargetFramework>
@@ -88,13 +88,14 @@ if (!string.IsNullOrEmpty("$(UpdateModinfoAtPath)"))
   <Target Name="PackMod" AfterTargets="UpdateModFiles" Condition="'$(Configuration)'=='Release'">
     <PropertyGroup>
       <BuildOutputDir>../build/</BuildOutputDir>
+      <ArchiveName>$(AssemblyTitle.Replace(" ", ""))_$(Version)</ArchiveName>
     </PropertyGroup>
 
-    <Exec Command="7z a -t7z -mx=7 -bso0 -bsp0 $(BuildOutputDir)/MorePipeJukeNerfs_$(Version).7z ../mod/*" ContinueOnError="WarnAndContinue">
+    <Exec Command="7z a -t7z -mx=7 -bso0 -bsp0 $(BuildOutputDir)/$(ArchiveName).7z ../mod/*" ContinueOnError="WarnAndContinue">
       <Output TaskParameter="ExitCode" PropertyName="SevenZipExitCode"/>
     </Exec>
-    <Exec Command="7z a -tzip -mx=7 -bso0 -bsp0 $(BuildOutputDir)/MorePipeJukeNerfs_$(Version).zip ../mod/*" Condition="$(SevenZipExitCode)=='0'"/>
+    <Exec Command="7z a -tzip -mx=7 -bso0 -bsp0 $(BuildOutputDir)/$(ArchiveName).zip ../mod/*" Condition="$(SevenZipExitCode)=='0'"/>
 
-    <ZipDirectory DestinationFile="$(BuildOutputDir)/MorePipeJukeNerfs_$(Version).zip" SourceDirectory="../mod/" Overwrite="true" Condition="$(SevenZipExitCode)!='0'"/>
+    <ZipDirectory DestinationFile="$(BuildOutputDir)/$(ArchiveName).zip" SourceDirectory="../mod/" Overwrite="true" Condition="$(SevenZipExitCode)!='0'"/>
   </Target>
 </Project>

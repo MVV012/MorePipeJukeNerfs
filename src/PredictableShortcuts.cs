@@ -5,7 +5,7 @@ namespace MorePipeJukeNerfs;
 
 public class PredictableShortcuts
 {
-    private static ConditionalWeakTable<ShortcutHandler.ShortCutVessel, List<AbstractCreature>> s_vesselSeenBy = new();
+    internal static ConditionalWeakTable<ShortcutHandler.ShortCutVessel, List<AbstractCreature>> s_vesselSeenBy = new();
 
     public static void OnEnable()
     {

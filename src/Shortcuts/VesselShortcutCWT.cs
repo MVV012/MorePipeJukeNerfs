@@ -5,7 +5,7 @@ namespace MorePipeJukeNerfs.Shortcuts;
 
 public static class VesselShortcutCWT
 {
-    private static ConditionalWeakTable<ShortcutHandler.ShortCutVessel, IShortcut> s_shortcuts = new();
+    internal static ConditionalWeakTable<ShortcutHandler.ShortCutVessel, IShortcut> s_shortcuts = new();
 
     public static void ApplyHooks()
     {

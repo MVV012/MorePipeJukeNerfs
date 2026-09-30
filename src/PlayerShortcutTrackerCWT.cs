@@ -4,7 +4,7 @@ namespace MorePipeJukeNerfs;
 
 public static class PlayerShortcutTrackerCWT
 {
-    private static ConditionalWeakTable<Player, ShortcutUsesTracker> s_shortcutUsesTrackers = new();
+    internal static ConditionalWeakTable<Player, ShortcutUsesTracker> s_shortcutUsesTrackers = new();
 
     extension(Player player)
     {
@@ -14,7 +14,6 @@ public static class PlayerShortcutTrackerCWT
     public static void ApplyHooks()
     {
         On.Player.Update += Player_Update;
-        On.OverWorld.WorldLoaded += OverWorld_WorldLoaded;
     }
 
     private static void Player_Update(On.Player.orig_Update orig, Player self, bool eu)
@@ -22,12 +21,5 @@ public static class PlayerShortcutTrackerCWT
         orig(self, eu);
 
         self.ShortcutUsesTracker.Update();
-    }
-
-    private static void OverWorld_WorldLoaded(On.OverWorld.orig_WorldLoaded orig, OverWorld self, bool warpUsed)
-    {
-        orig(self, warpUsed);
-
-        s_shortcutUsesTrackers = new();
     }
 }

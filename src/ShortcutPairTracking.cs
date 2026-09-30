@@ -6,7 +6,7 @@ namespace MorePipeJukeNerfs;
 
 public static class ShortcutPairTracking
 {
-    private static ConditionalWeakTable<ShortcutHandler.ShortCutVessel, List<AbstractCreature>> s_metCreatures = new();
+    internal static ConditionalWeakTable<ShortcutHandler.ShortCutVessel, List<AbstractCreature>> s_metCreatures = new();
 
     public delegate void PairCreatureExitedHandler(AbstractCreature cur, AbstractCreature other, IShortcut shortcut);
 

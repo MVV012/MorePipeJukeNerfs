@@ -4,7 +4,7 @@ namespace MorePipeJukeNerfs.Debug.Tests;
 
 internal static class RoomRealizingRestrictions
 {
-    private static ConditionalWeakTable<AbstractRoom, RealizingRestrictions> s_realizingRestrictions = new();
+    internal static ConditionalWeakTable<AbstractRoom, RealizingRestrictions> s_realizingRestrictions = new();
 
     public class RealizingRestrictions
     {
