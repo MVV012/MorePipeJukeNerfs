@@ -1,4 +1,3 @@
-using MorePipeJukeNerfs;
 using MorePipeJukeNerfs.Shortcuts;
 
 namespace MorePipeJukeNerfs;
@@ -24,8 +23,6 @@ internal class PipeJukeNotifier
         DebugLogInfo($"First exited: {cur} (other: {other})");
 
         OnPipeJuke(cur, other, shortcut.StartRoom, shortcut.StartCoord, pause: true, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
-
-        // Updating state here is more accurate, but causes exceptions for some creatures (curently found: EggBug, BigNeedleWorm)
         OnPipeJuke(other, cur, shortcut.DestRoom, shortcut.DestCoord, pause: false, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
     }
 
@@ -37,9 +34,6 @@ internal class PipeJukeNotifier
         {
             rep.CreatureExitedShortcut(shortcut.DestRoom, shortcut.DestCoord, shortcut.Type == ShortcutData.Type.RoomExit);
         }
-
-        // Updating state here is less accurate, but causes less exceptions
-        //OnPipeJuke(cur, other, shortcut.StartRoom, shortcut.StartCoord, pause: false, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
     }
 
     private static void OnPipeJuke(AbstractCreature cur, AbstractCreature other, AbstractRoom otherRoom, WorldCoordinate otherCoord, bool pause = false, bool setForbiddenRoomExit = false)

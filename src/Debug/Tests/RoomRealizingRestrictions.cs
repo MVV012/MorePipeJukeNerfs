@@ -1,31 +1,14 @@
-using System.Runtime.CompilerServices;
+using RWGenerators;
 
 namespace MorePipeJukeNerfs.Debug.Tests;
 
-internal static class RoomRealizingRestrictions
+// These will be cleared on WorldLoaded and RWGameShutDown
+[AttachField<AbstractRoom, bool>("KeepRealized", false, Impl = AttachFieldImpl.StrongRef)]
+[AttachField<AbstractRoom, bool>("KeepAbstract", false, Impl = AttachFieldImpl.StrongRef)]
+internal static partial class RoomRealizingRestrictions
 {
-    internal static ConditionalWeakTable<AbstractRoom, RealizingRestrictions> s_realizingRestrictions = new();
-
-    public class RealizingRestrictions
-    {
-        public bool KeepRealized = false;
-        public bool KeepAbstract = false;
-    }
-
     extension(AbstractRoom room)
     {
-        public bool KeepRealized
-        {
-            get => s_realizingRestrictions.GetOrCreateValue(room).KeepRealized;
-            set => s_realizingRestrictions.GetOrCreateValue(room).KeepRealized = value;
-        }
-
-        public bool KeepAbstract
-        {
-            get => s_realizingRestrictions.GetOrCreateValue(room).KeepAbstract;
-            set => s_realizingRestrictions.GetOrCreateValue(room).KeepAbstract = value;
-        }
-
         public void AbstractizeAndRestrict()
         {
             room.KeepRealized = false;
@@ -49,7 +32,8 @@ internal static class RoomRealizingRestrictions
 
     public static void RemoveAllRestrictions()
     {
-        s_realizingRestrictions = new();
+        AbstractRoom.ClearAllKeepRealizedFields();
+        AbstractRoom.ClearAllKeepAbstractFields();
     }
 
     public static void ApplyHooks()

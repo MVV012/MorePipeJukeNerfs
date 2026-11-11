@@ -1,12 +1,11 @@
 using MorePipeJukeNerfs.Shortcuts;
-using System.Runtime.CompilerServices;
+using RWGenerators;
 
 namespace MorePipeJukeNerfs;
 
-public class PredictableShortcuts
+[AttachOptionalField<ShortcutHandler.ShortCutVessel, List<AbstractCreature>>("SeenByCreatures", AddGetOrCreateValue = true)]
+public static partial class PredictableShortcuts
 {
-    internal static ConditionalWeakTable<ShortcutHandler.ShortCutVessel, List<AbstractCreature>> s_vesselSeenBy = new();
-
     public static void OnEnable()
     {
         On.Tracker.ElaborateCreatureRepresentation.LostVisualContact += ElaborateCreatureRepresentation_LostVisualContact;
@@ -32,7 +31,7 @@ public class PredictableShortcuts
             && creature.inShortcutVessel.TryGetShortcut(out IShortcut shortcut))
         {
             self.MoveToShortcutEntrance(shortcut.DestRoom, shortcut.DestCoord, pause: true, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
-            s_vesselSeenBy.GetOrCreateValue(creature.inShortcutVessel).Add(self.parent.AI.creature);
+            creature.inShortcutVessel.GetOrCreateSeenByCreatures().Add(self.parent.AI.creature);
         }
     }
 
@@ -43,16 +42,14 @@ public class PredictableShortcuts
             return;
         }
 
-        if (!vessel.TryGetShortcut(out IShortcut shortcut))
+        if (vessel.TryGetSeenByCreatures(out List<AbstractCreature> seenBy) && vessel.TryGetShortcut(out IShortcut shortcut))
         {
-            return;
-        }
-
-        foreach (AbstractCreature seenBy in s_vesselSeenBy.GetOrCreateValue(vessel))
-        {
-            if (seenBy.TryGetRepresentation(vessel.creature.abstractCreature, out var rep))
+            foreach (AbstractCreature creature in seenBy)
             {
-                rep.CreatureExitedShortcut(shortcut.DestRoom, shortcut.DestCoord, shortcut.Type == ShortcutData.Type.RoomExit);
+                if (creature.TryGetRepresentation(vessel.creature.abstractCreature, out var rep))
+                {
+                    rep.CreatureExitedShortcut(shortcut.DestRoom, shortcut.DestCoord, shortcut.Type == ShortcutData.Type.RoomExit);
+                }
             }
         }
     }

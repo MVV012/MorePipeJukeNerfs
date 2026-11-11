@@ -1,13 +1,23 @@
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
+using RWGenerators;
 
 namespace MorePipeJukeNerfs;
 
-internal static class ShortcutCounterReducer
+// Players and abstract rooms are unlikely to be removed, these will be cleared on WorldLoaded and RWGameShutDown
+[AttachField<Player, ShortcutUsesTracker>("ShortcutUsesTracker", Impl = AttachFieldImpl.StrongRef)]
+public static partial class ShortcutCounterReducer
 {
     public static void ApplyHooks()
     {
+        On.Player.Update += Player_Update;
         On.ShortcutHandler.SpitOutCreature += ShortcutHandler_SpitOutCreature;
+    }
+
+    private static void Player_Update(On.Player.orig_Update orig, Player self, bool eu)
+    {
+        orig(self, eu);
+        self.ShortcutUsesTracker.Update();
     }
 
     private static void ShortcutHandler_SpitOutCreature(On.ShortcutHandler.orig_SpitOutCreature orig, ShortcutHandler self, ShortcutHandler.ShortCutVessel vessel)

@@ -1,15 +1,10 @@
-using System.Runtime.CompilerServices;
+using RWGenerators;
 
 namespace MorePipeJukeNerfs;
 
-public static class GhostUtils
+[AttachField<Tracker.Ghost, bool>("Pushable", true)]
+public static partial class GhostPushable
 {
-    internal static ConditionalWeakTable<Tracker.Ghost, GhostPushable> s_ghostPushable = new();
-    internal class GhostPushable()
-    {
-        public bool Pushable { get; set; } = true;
-    }
-
     public static void ApplyHooks()
     {
         On.Tracker.Ghost.Push += Ghost_Push;
@@ -32,12 +27,6 @@ public static class GhostUtils
 
     extension(Tracker.Ghost ghost)
     {
-        public bool Pushable
-        {
-            get => s_ghostPushable.GetOrCreateValue(ghost).Pushable;
-            set => s_ghostPushable.GetOrCreateValue(ghost).Pushable = value;
-        }
-
         public void Pause()
         {
             ghost.stopped = true;

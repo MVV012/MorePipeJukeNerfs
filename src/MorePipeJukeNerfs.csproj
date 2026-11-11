@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="../lib/**/*.dll" Exclude="../lib/debug/**/*.dll">
+    <Reference Include="../lib/**/*.dll" Exclude="../lib/debug/**/*.dll;../lib/gen/**/*.dll">
       <Private>false</Private>
     </Reference>
   </ItemGroup>
@@ -33,7 +33,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <ProjectReference Include="..\RWGenerators\RWGenerators.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <Analyzer Include="../lib/gen/RWGenerators.dll"/>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' != 'Debug'">

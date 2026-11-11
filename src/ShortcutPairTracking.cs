@@ -1,13 +1,12 @@
 using BepInEx.Logging;
 using MorePipeJukeNerfs.Shortcuts;
-using System.Runtime.CompilerServices;
+using RWGenerators;
 
 namespace MorePipeJukeNerfs;
 
-public static class ShortcutPairTracking
+[AttachOptionalField<ShortcutHandler.ShortCutVessel, List<AbstractCreature>>("MetCreatures", AddGetOrCreateValue = true)]
+public static partial class ShortcutPairTracking
 {
-    internal static ConditionalWeakTable<ShortcutHandler.ShortCutVessel, List<AbstractCreature>> s_metCreatures = new();
-
     public delegate void PairCreatureExitedHandler(AbstractCreature cur, AbstractCreature other, IShortcut shortcut);
 
     public static event PairCreatureExitedHandler? FirstCreatureExited;
@@ -42,13 +41,17 @@ public static class ShortcutPairTracking
 
                     FirstCreatureExited?.Invoke(vessel.creature.abstractCreature, otherVessel.creature.abstractCreature, curShortcut);
 
-                    s_metCreatures.GetOrCreateValue(otherVessel).Add(vessel.creature.abstractCreature);
+                    otherVessel.GetOrCreateMetCreatures().Add(vessel.creature.abstractCreature);
                 }
             }
 
-            foreach (AbstractCreature otherCreature in s_metCreatures.GetOrCreateValue(vessel))
+            if (vessel.TryGetMetCreatures(out List<AbstractCreature> metCreatures))
             {
-                SecondCreatureExited?.Invoke(vessel.creature.abstractCreature, otherCreature, curShortcut);
+                foreach (AbstractCreature otherCreature in metCreatures)
+                {
+                    SecondCreatureExited?.Invoke(vessel.creature.abstractCreature, otherCreature, curShortcut);
+                }
+                vessel.RemoveMetCreatures();
             }
         }
     }

@@ -4,6 +4,7 @@ using MonoMod.RuntimeDetour;
 using MonoMod.RuntimeDetour.HookGen;
 using MorePipeJukeNerfs.Remix;
 using MorePipeJukeNerfs.Shortcuts;
+using RWGenerators;
 using System.Security.Permissions;
 
 // Allows access to private members
@@ -26,31 +27,36 @@ sealed public partial class Plugin : BaseUnityPlugin
     {
         LogWrapper.OnEnable(base.Logger);
 
-        DebugLogInfo("OnEnable");
+        try
+        {
+            DebugLogInfo("OnEnable");
 
-        On.RainWorld.OnModsInit += RainWorld_OnModsInit;
+            On.RainWorld.OnModsInit += RainWorld_OnModsInit;
 
-        VesselShortcutCWT.ApplyHooks();
-        VesselRemovalTracking.ApplyHooks();
-        ShortcutPairTracking.OnEnable();
-        NoticeCreatureUtils.ApplyHooks();
-        GhostUtils.ApplyHooks();
-        CreatureFixes.ApplyHooks();
+            AttachedFieldManager.ApplyHooks();
 
-        PipeJukeNotifier.OnEnable();
-        PredictableShortcuts.OnEnable();
+            VesselShortcutInfo.ApplyHooks();
+            VesselRemovalTracking.ApplyHooks();
+            ShortcutPairTracking.OnEnable();
+            NoticeCreatureUtils.ApplyHooks();
+            GhostPushable.ApplyHooks();
+            CreatureFixes.ApplyHooks();
 
-        PlayerShortcutTrackerCWT.ApplyHooks();
-        ShortcutCounterReducer.ApplyHooks();
+            PipeJukeNotifier.OnEnable();
+            PredictableShortcuts.OnEnable();
 
-        RemixUtils.ApplyHooks();
+            ShortcutCounterReducer.ApplyHooks();
 
-        On.RainWorldGame.ShutDownProcess += RainWorldGame_ShutDownProcess;
-        On.OverWorld.WorldLoaded += OverWorld_WorldLoaded;
+            RemixUtils.ApplyHooks();
 
 #if DEBUG
-        DebugOnEnable();
+            DebugOnEnable();
 #endif
+        }
+        catch (Exception e)
+        {
+            ReleaseLog(LogLevel.Error, $"Falied to initialize More Pipe Juke Nerfs. Exception: {e}");
+        }
     }
 
     public void OnDisable()
@@ -76,37 +82,6 @@ sealed public partial class Plugin : BaseUnityPlugin
         _isInit = true;
 
         MachineConnector.SetRegisteredOI(Id, RemixMenu.Instance);
-    }
-
-    private void RainWorldGame_ShutDownProcess(On.RainWorldGame.orig_ShutDownProcess orig, RainWorldGame self)
-    {
-        orig(self);
-
-        ClearAllCWTs();
-    }
-
-    private void OverWorld_WorldLoaded(On.OverWorld.orig_WorldLoaded orig, OverWorld self, bool warpUsed)
-    {
-        orig(self, warpUsed);
-
-        ClearAllCWTs();
-    }
-
-    private void ClearAllCWTs()
-    {
-        // Temporary fix of potential memory leaks
-        VesselShortcutCWT.s_shortcuts = new();
-        ShortcutPairTracking.s_metCreatures = new();
-        GhostUtils.s_ghostPushable = new();
-        PlayerShortcutTrackerCWT.s_shortcutUsesTrackers = new();
-        PredictableShortcuts.s_vesselSeenBy = new();
-
-#if DEBUG
-        if (DebugWindowEnabled)
-        {
-            Debug.Tests.RoomRealizingRestrictions.s_realizingRestrictions = new();
-        }
-#endif
     }
 
 #if DEBUG

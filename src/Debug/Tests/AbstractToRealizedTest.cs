@@ -55,7 +55,7 @@ internal class AbstractToRealizedTest : ShortcutTestBase
             OtherSpawn: new WorldCoordinate(MPJNTST_A01_index, 10, 4, -1),
             TestedEnterCoord: new WorldCoordinate(MPJNTST_A01_index, 12, 4, 0),
             OtherShortcut: new IntVector2(15, 4),
-            EnteringDelay: 10
+            EnteringDelay: 12
         )
         {
             AbstractRooms = ["MPJNTST_A02"],
