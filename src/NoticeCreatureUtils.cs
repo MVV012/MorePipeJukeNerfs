@@ -1,4 +1,3 @@
-using BepInEx.Logging;
 using MonoMod.RuntimeDetour;
 
 namespace MorePipeJukeNerfs;
@@ -45,7 +44,7 @@ public static class NoticeCreatureUtils
             CreatureTemplate.Relationship? newRel = rep.dynamicRelationship?.currentRelationship;
             if (newRel != null && !newRel.Equals(oldRel))
             {
-                DebugLogInfo($"New relationship of {rep.parent.AI.creature} to {rep.representedCreature}: {(oldRel == null ? "None" : oldRel)} -> {rep.dynamicRelationship?.currentRelationship}");
+                LogDebug($"New relationship of {rep.parent.AI.creature} to {rep.representedCreature}: {(oldRel == null ? "None" : oldRel)} -> {rep.dynamicRelationship?.currentRelationship}");
             }
 #endif
         }
@@ -53,11 +52,11 @@ public static class NoticeCreatureUtils
         {
             if (rep.dynamicRelationship?.currentRelationship.type == CreatureTemplate.Relationship.Type.SocialDependent)
             {
-                ReleaseLog(LogLevel.Error, $"Failed to update relationship of {rep.parent.AI.creature} towards {rep.representedCreature}. Exception: {e}");
+                LogError($"Failed to update relationship of {rep.parent.AI.creature} towards {rep.representedCreature}. Exception: {e}");
             }
             else
             {
-                ReleaseLog(LogLevel.Warning, $"Probably non-critical exception caught while updating relationship of {rep.parent.AI.creature} towards {rep.representedCreature}: {e}");
+                LogWarning($"Probably non-critical exception caught while updating relationship of {rep.parent.AI.creature} towards {rep.representedCreature}: {e}");
             }
         }
         finally
@@ -83,11 +82,11 @@ public static class NoticeCreatureUtils
             bool creatureNoticed = tracking.TryGetRepresentation(tracked, out _);
             if (!creatureNoticed)
             {
-                ReleaseLog(LogLevel.Error, $"Failed to make {tracking} notice {tracked}. Exception: {e}");
+                LogError($"Failed to make {tracking} notice {tracked}. Exception: {e}");
             }
             else
             {
-                ReleaseLog(LogLevel.Warning, $"Non-critical exception caught while making {tracking} notice {tracked}: {e}");
+                LogWarning($"Non-critical exception caught while making {tracking} notice {tracked}: {e}");
             }
         }
     }

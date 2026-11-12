@@ -7,7 +7,7 @@ internal static class PlayerGraphicsInitiateSpritesFix
 {
     public static void ApplyHooks()
     {
-        IL.PlayerGraphics.InitiateSprites += PlayerGraphics_InitiateSprites;
+        IL.PlayerGraphics.InitiateSprites += ILHookUtils.Wrap(PlayerGraphics_InitiateSprites);
     }
 
     private static void PlayerGraphics_InitiateSprites(ILContext il)

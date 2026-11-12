@@ -4,7 +4,6 @@ using LogUtils.Diagnostics.Tests;
 using LogUtils.Enums;
 using LogUtils.Helpers;
 using LogUtils.Policy;
-using System.Diagnostics;
 
 namespace MorePipeJukeNerfs.Debug.Tests;
 
@@ -24,7 +23,7 @@ internal class TestRunner
         TestLogger = new Logger(TestLogID);
         CombinedLogger = new Logger(LogTarget.Combiner.Combine(LogUtilsLogger.ID, TestLogID));
 
-        Plugin.OnDisableEvent += OnDisable;
+        Plugin.RegisterOnDisable(OnDisable);
     }
 
     public static void OnDisable()

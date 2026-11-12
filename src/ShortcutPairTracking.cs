@@ -1,4 +1,3 @@
-using BepInEx.Logging;
 using MorePipeJukeNerfs.Shortcuts;
 using RWGenerators;
 
@@ -16,10 +15,9 @@ public static partial class ShortcutPairTracking
     {
         VesselRemovalTracking.OnShortcutVesselRemoved += OnShortcutVesselRemoved;
 
-        Plugin.OnDisableEvent += () =>
-        {
+        Plugin.RegisterOnDisable(() => {
             VesselRemovalTracking.OnShortcutVesselRemoved -= OnShortcutVesselRemoved;
-        };
+        });
     }
 
     private static void OnShortcutVesselRemoved(ShortcutHandler shortcuts, ShortcutHandler.ShortCutVessel vessel, bool toAbstract)
@@ -37,7 +35,7 @@ public static partial class ShortcutPairTracking
                     && curShortcut.IsOppositeDirection(otherShortcut)
                     && ShouldPairBeTracked(vessel.creature.abstractCreature, otherVessel.creature.abstractCreature))
                 {
-                    ReleaseLog(LogLevel.Info, $"{vessel.creature} and {otherVessel.creature} met in shortcut");
+                    LogInfo($"{vessel.creature} and {otherVessel.creature} met in shortcut");
 
                     FirstCreatureExited?.Invoke(vessel.creature.abstractCreature, otherVessel.creature.abstractCreature, curShortcut);
 

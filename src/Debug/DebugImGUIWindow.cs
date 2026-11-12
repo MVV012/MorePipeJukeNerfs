@@ -6,8 +6,6 @@ using LogUtils.Helpers;
 using LogUtils.Policy;
 using MonoMod.RuntimeDetour;
 using MorePipeJukeNerfs.Debug.Tests;
-using MorePipeJukeNerfs.Shortcuts;
-using RWCustom;
 using RWIMGUI.API;
 using System.Diagnostics;
 using UnityEngine;
@@ -30,7 +28,7 @@ internal class DebugImGUIWindow
             BlockWMEvent_Hook
         ));
 
-        Plugin.OnDisableEvent += OnDisable;
+        Plugin.RegisterOnDisable(OnDisable);
     }
 
     public static void OnDisable()
@@ -113,7 +111,7 @@ internal class DebugImGUIWindow
             {
                 RunOnMainThread(() =>
                 {
-                    Log.LogDebug($"Running {updates} RainWorldGame updates in {game.FirstAnyPlayer.Room.name}");
+                    LogDebug($"Running {updates} RainWorldGame updates in {game.FirstAnyPlayer.Room.name}");
                     using (new Stopwatch().BeginScope(Log))
                     {
                         game.Update(updates);

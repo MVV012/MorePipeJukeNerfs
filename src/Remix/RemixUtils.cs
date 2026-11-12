@@ -17,7 +17,7 @@ public static class RemixUtils
         if (ConfigContainer.activeTab?.owner?.mod.id == Plugin.Id)
         {
             // Make greyed out UIfocusables of my mod remix menu unfocusable
-            return list.Where(element => !(element.tab?.owner?.mod.id == Plugin.Id && element.greyedOut)).ToList();
+            list.RemoveAll(element => element.tab?.owner?.mod.id == Plugin.Id && element.greyedOut);
         }
         return list;
     }
@@ -71,7 +71,14 @@ public static class RemixUtils
     {
         public UIconfig WithConfig(ConfigurableBase config)
         {
-            return elements.OfType<UIconfig>().Where(element => element.cfgEntry == config).First();
+            foreach (UIelement element in elements)
+            {
+                if (element is UIconfig configurable && configurable.cfgEntry == config)
+                {
+                    return configurable;
+                }
+            }
+            throw new ArgumentException("Configurable with specified config not found");
         }
     }
 }

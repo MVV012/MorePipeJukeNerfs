@@ -31,8 +31,8 @@ internal static class TestedCreatures
             .Where(name => !excludedCreatures.Contains(name))
             .ToArray();
 
-        Log.LogDebug($"{TestedTemplateNames.Length} tested creatures: {string.Join(", ", TestedTemplateNames)}");
-        Log.LogDebug($"{OtherTemplateNames.Length} other creatures: {string.Join(", ", OtherTemplateNames)}");
+        LogDebug($"{TestedTemplateNames.Length} tested creatures: {string.Join(", ", TestedTemplateNames)}");
+        LogDebug($"{OtherTemplateNames.Length} other creatures: {string.Join(", ", OtherTemplateNames)}");
     }
 
     public static CreatureTemplate.Type[] GetSelectedTemplates(bool[] selectedTypes, bool other = false)

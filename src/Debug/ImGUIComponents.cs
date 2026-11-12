@@ -1,9 +1,7 @@
 using ImGuiNET;
-using LogUtils.Formatting;
 using MorePipeJukeNerfs.Debug.Tests;
 using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
-using System.Diagnostics.CodeAnalysis;
 
 namespace MorePipeJukeNerfs.Debug;
 

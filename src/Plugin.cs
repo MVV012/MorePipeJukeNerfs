@@ -1,10 +1,11 @@
 using BepInEx;
-using BepInEx.Logging;
+using BepInEx.Bootstrap;
 using MonoMod.RuntimeDetour;
 using MonoMod.RuntimeDetour.HookGen;
 using MorePipeJukeNerfs.Remix;
 using MorePipeJukeNerfs.Shortcuts;
 using RWGenerators;
+using System.Diagnostics;
 using System.Security.Permissions;
 
 // Allows access to private members
@@ -14,6 +15,11 @@ using System.Security.Permissions;
 
 namespace MorePipeJukeNerfs;
 
+#if DEBUG
+[BepInDependency("rwimgui", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency("maxi-mol.mousedrag", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency("LeeMoriya.Warp", BepInDependency.DependencyFlags.SoftDependency)]
+#endif
 [BepInAutoPlugin]
 sealed public partial class Plugin : BaseUnityPlugin
 {
@@ -21,7 +27,9 @@ sealed public partial class Plugin : BaseUnityPlugin
     internal static bool DebugWindowEnabled = false;
 
     internal static List<Hook> ManualHooks = [];
-    internal static event Action? OnDisableEvent;
+    private static Action? OnDisableAction;
+    [Conditional("DEBUG")]
+    internal static void RegisterOnDisable(Action action) => OnDisableAction += action;
 
     public void OnEnable()
     {
@@ -29,7 +37,7 @@ sealed public partial class Plugin : BaseUnityPlugin
 
         try
         {
-            DebugLogInfo("OnEnable");
+            LogDebug("OnEnable");
 
             On.RainWorld.OnModsInit += RainWorld_OnModsInit;
 
@@ -52,26 +60,12 @@ sealed public partial class Plugin : BaseUnityPlugin
 #if DEBUG
             DebugOnEnable();
 #endif
+            LogInfo("More Pipe Juke Nerfs initialized");
         }
         catch (Exception e)
         {
-            ReleaseLog(LogLevel.Error, $"Falied to initialize More Pipe Juke Nerfs. Exception: {e}");
+            LogError($"Falied to initialize More Pipe Juke Nerfs. Exception: {e}");
         }
-    }
-
-    public void OnDisable()
-    {
-        HookEndpointManager.RemoveAllOwnedBy(typeof(Plugin).Assembly);
-        foreach (Hook hook in ManualHooks)
-        {
-            hook.Dispose();
-        }
-        ManualHooks.Clear();
-
-        OnDisableEvent?.Invoke();
-        OnDisableEvent = null;
-
-        LogWrapper.OnDisable();
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
@@ -85,28 +79,49 @@ sealed public partial class Plugin : BaseUnityPlugin
     }
 
 #if DEBUG
+    public void OnDisable()
+    {
+        HookEndpointManager.RemoveAllOwnedBy(typeof(Plugin).Assembly);
+        foreach (Hook hook in ManualHooks)
+        {
+            hook.Dispose();
+        }
+        ManualHooks.Clear();
+
+        OnDisableAction?.Invoke();
+        OnDisableAction = null;
+
+        LogWrapper.OnDisable();
+    }
+
     public void DebugOnEnable()
     {
         // For Rain Reloader, does nothing without it
         MachineConnector.SetRegisteredOI(Id, RemixMenu.Instance);
         MachineConnector.ReloadConfig(RemixMenu.Instance);
 
-        List<string> debugDeps = ["rwimgui", "maxi-mol.mousedrag", "warp"];
-        List<string> disabledDeps = debugDeps.Where(dep => !ModManager.ActiveMods.Exists(mod => mod.id == dep)).ToList();
+        string[] debugDeps = ["rwimgui", "maxi-mol.mousedrag", "LeeMoriya.Warp"];
+        List<string> disabledDeps = [];
+        foreach (string dep in debugDeps)
+        {
+            if (!Chainloader.PluginInfos.ContainsKey(dep))
+            {
+                disabledDeps.Add(dep);
+            }
+        }
 
         if (disabledDeps.Count != 0)
         {
-            DebugLog(LogLevel.Warning, $"Dependencies ({string.Join(", ", disabledDeps)}) for debug imgui menu are not enabled");
+            LogWarning($"Dependencies ({string.Join(", ", disabledDeps)}) for debug imgui menu are not enabled");
         }
         if (!LogWrapper.LogUtilsUsed)
         {
-            DebugLog(LogLevel.Warning, $"LogUtils required for debug imgui menu is not enabled (Add as assembly or enable Log Manager)");
+            LogWarning($"LogUtils required for debug imgui menu is not enabled (Add as assembly or enable Log Manager)");
         }
 
         if (disabledDeps.Count == 0 && LogWrapper.LogUtilsUsed)
         {
             TrueDebugOnEnable();
-
             DebugWindowEnabled = true;
         }
     }

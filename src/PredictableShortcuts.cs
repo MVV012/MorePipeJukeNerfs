@@ -11,7 +11,9 @@ public static partial class PredictableShortcuts
         On.Tracker.ElaborateCreatureRepresentation.LostVisualContact += ElaborateCreatureRepresentation_LostVisualContact;
         VesselRemovalTracking.OnShortcutVesselRemoved += OnShortcutVesselRemoved;
 
-        Plugin.OnDisableEvent += () => VesselRemovalTracking.OnShortcutVesselRemoved -= OnShortcutVesselRemoved;
+        Plugin.RegisterOnDisable(() => {
+            VesselRemovalTracking.OnShortcutVesselRemoved -= OnShortcutVesselRemoved;
+        }); // Hook is removed by HookEndpointManager.RemoveAllOwnedBy
     }
 
     private static void ElaborateCreatureRepresentation_LostVisualContact(On.Tracker.ElaborateCreatureRepresentation.orig_LostVisualContact orig, Tracker.ElaborateCreatureRepresentation self)

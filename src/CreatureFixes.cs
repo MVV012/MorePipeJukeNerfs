@@ -1,4 +1,3 @@
-using BepInEx.Logging;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
@@ -20,14 +19,14 @@ public static class CreatureFixes
         ));
         On.CentipedeAI.OverChasm += CentipedeAI_OverChasm;
         On.NeedleWormAI.UncomfortableToAfraidRelationshipModifier += NeedleWormAI_UncomfortableToAfraidRelationshipModifier;
-        IL.MouseAI.IUseARelationshipTracker_UpdateDynamicRelationship += MouseAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook;
-        IL.MoreSlugcats.YeekAI.IUseARelationshipTracker_UpdateDynamicRelationship += YeekAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook;
-        IL.Watcher.BigMothAI.IUseARelationshipTracker_UpdateDynamicRelationship += BigMothAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook;
-        IL.JetFishAI.IUseARelationshipTracker_UpdateDynamicRelationship += JetFishAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook;
-        IL.Watcher.AnglerAI.IUseARelationshipTracker_UpdateDynamicRelationship += AnglerAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook;
-        IL.DaddyAI.Update += DaddyAI_Update_ILHook; // Probably game bug?
-        IL.DropBugAI.IUseARelationshipTracker_UpdateDynamicRelationship += DropBugAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook; // Actual game bug
-        IL.EggBugAI.CreatureSpotted += EggBugAI_CreatureSpotted_ILHook;
+        IL.MouseAI.IUseARelationshipTracker_UpdateDynamicRelationship += ILHookUtils.Wrap(MouseAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook);
+        IL.MoreSlugcats.YeekAI.IUseARelationshipTracker_UpdateDynamicRelationship += ILHookUtils.Wrap(YeekAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook);
+        IL.Watcher.BigMothAI.IUseARelationshipTracker_UpdateDynamicRelationship += ILHookUtils.Wrap(BigMothAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook);
+        IL.JetFishAI.IUseARelationshipTracker_UpdateDynamicRelationship += ILHookUtils.Wrap(JetFishAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook);
+        IL.Watcher.AnglerAI.IUseARelationshipTracker_UpdateDynamicRelationship += ILHookUtils.Wrap(AnglerAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook);
+        IL.DaddyAI.Update += ILHookUtils.Wrap(DaddyAI_Update_ILHook); // Probably game bug?
+        IL.DropBugAI.IUseARelationshipTracker_UpdateDynamicRelationship += ILHookUtils.Wrap(DropBugAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook); // Actual game bug
+        IL.EggBugAI.CreatureSpotted += ILHookUtils.Wrap(EggBugAI_CreatureSpotted_ILHook);
     }
 
     private static float LizardGraphics_CreatureInterestBonus(On.LizardGraphics.orig_CreatureInterestBonus orig, LizardGraphics self, Tracker.CreatureRepresentation crit, float score)
@@ -80,317 +79,248 @@ public static class CreatureFixes
 
     private static void MouseAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook(ILContext il)
     {
-        try
+        ILCursor c = new(il);
+        c.GotoNext(x => x.MatchLdfld<CreatureTemplate>(nameof(CreatureTemplate.canFly)));
+
+        ILCursor d = new(c);
+        ILLabel label = null!;
+        d.GotoNext(x => x.MatchBrtrue(out label));
+
+        c.GotoPrev(x => x.MatchLdfld<MouseAI>(nameof(MouseAI.mouse)));
+        c.GotoPrev(x => x.MatchLdfld<RelationshipTracker.DynamicRelationship>(nameof(RelationshipTracker.DynamicRelationship.trackerRep)));
+        c.GotoPrev(MoveType.Before, x => x.MatchLdarg(1));
+        c.MoveAfterLabels();
+
+        c.Emit(OpCodes.Ldarg_0);
+        c.EmitStaticDelegate(SkipBranch);
+        c.Emit(OpCodes.Brtrue, label);
+
+        static bool SkipBranch(MouseAI ai)
         {
-            ILCursor c = new(il);
-            c.GotoNext(x => x.MatchLdfld<CreatureTemplate>(nameof(CreatureTemplate.canFly)));
+            if (!PipeJuking) return false;
 
-            ILCursor d = new(c);
-            ILLabel label = null!;
-            d.GotoNext(x => x.MatchBrtrue(out label));
-
-            c.GotoPrev(x => x.MatchLdfld<MouseAI>(nameof(MouseAI.mouse)));
-            c.GotoPrev(x => x.MatchLdfld<RelationshipTracker.DynamicRelationship>(nameof(RelationshipTracker.DynamicRelationship.trackerRep)));
-            c.GotoPrev(MoveType.Before, x => x.MatchLdarg(1));
-            c.MoveAfterLabels();
-
-            c.Emit(OpCodes.Ldarg_0);
-            c.EmitDelegate(SkipBranch);
-            c.Emit(OpCodes.Brtrue, label);
-
-            static bool SkipBranch(MouseAI ai)
-            {
-                if (!PipeJuking) return false;
-
-                return ai.mouse.room == null;
-            }
-        }
-        catch (Exception e)
-        {
-            ReleaseLog(LogLevel.Error, $"Failed to apply IL hook to MouseAI.IUseARelationshipTracker.UpdateDynamicRelationship. Exception: {e}");
+            return ai.mouse.room == null;
         }
     }
 
     private static void YeekAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook(ILContext il)
     {
-        try
+        ILCursor c = new(il);
+        c.GotoNext(x => x.MatchLdfld<CreatureTemplate>(nameof(CreatureTemplate.canFly)));
+
+        ILCursor d = new(c);
+        ILLabel label = null!;
+        d.GotoNext(x => x.MatchBrtrue(out label));
+
+        c.GotoPrev(x => x.MatchLdfld<MoreSlugcats.YeekAI>(nameof(MoreSlugcats.YeekAI.yeek)));
+        c.GotoPrev(x => x.MatchLdfld<RelationshipTracker.DynamicRelationship>(nameof(RelationshipTracker.DynamicRelationship.trackerRep)));
+        c.GotoPrev(MoveType.Before, x => x.MatchLdarg(1));
+        c.MoveAfterLabels();
+
+        c.Emit(OpCodes.Ldarg_0);
+        c.EmitStaticDelegate(SkipBranch);
+        c.Emit(OpCodes.Brtrue, label);
+
+        static bool SkipBranch(MoreSlugcats.YeekAI ai)
         {
-            ILCursor c = new(il);
-            c.GotoNext(x => x.MatchLdfld<CreatureTemplate>(nameof(CreatureTemplate.canFly)));
+            if (!PipeJuking) return false;
 
-            ILCursor d = new(c);
-            ILLabel label = null!;
-            d.GotoNext(x => x.MatchBrtrue(out label));
-
-            c.GotoPrev(x => x.MatchLdfld<MoreSlugcats.YeekAI>(nameof(MoreSlugcats.YeekAI.yeek)));
-            c.GotoPrev(x => x.MatchLdfld<RelationshipTracker.DynamicRelationship>(nameof(RelationshipTracker.DynamicRelationship.trackerRep)));
-            c.GotoPrev(MoveType.Before, x => x.MatchLdarg(1));
-            c.MoveAfterLabels();
-
-            c.Emit(OpCodes.Ldarg_0);
-            c.EmitDelegate(SkipBranch);
-            c.Emit(OpCodes.Brtrue, label);
-
-            static bool SkipBranch(MoreSlugcats.YeekAI ai)
-            {
-                if (!PipeJuking) return false;
-
-                return ai.yeek.room == null;
-            }
-        }
-        catch (Exception e)
-        {
-            ReleaseLog(LogLevel.Error, $"Failed to apply IL hook to YeekAI.IUseARelationshipTracker.UpdateDynamicRelationship. Exception: {e}");
+            return ai.yeek.room == null;
         }
     }
 
     private static void BigMothAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook(ILContext il)
     {
-        try
+        ILCursor c = new(il);
+        c.GotoNext(x => x.MatchCallvirt<AbstractRoom>(nameof(AbstractRoom.AttractionForCreature)));
+
+        c.GotoPrev(MoveType.After,
+            x => x.MatchLdfld<Watcher.BigMothAI>(nameof(Watcher.BigMothAI.bug))
+        );
+
+        ILCursor d = new(c);
+        d.GotoNext(MoveType.After,
+            x => x.MatchGetter<Room>(nameof(Room.abstractRoom))
+        );
+        ILLabel label = d.MarkLabel();
+
+        c.EmitStaticDelegate(GetAbstractRoom);
+        c.Emit(OpCodes.Br_S, label);
+
+        static AbstractRoom GetAbstractRoom(Watcher.BigMoth smolMof)
         {
-            ILCursor c = new(il);
-            c.GotoNext(x => x.MatchCallvirt<AbstractRoom>(nameof(AbstractRoom.AttractionForCreature)));
+            if (!PipeJuking) return smolMof.room.abstractRoom;
 
-            c.GotoPrev(MoveType.After,
-                x => x.MatchLdfld<Watcher.BigMothAI>(nameof(Watcher.BigMothAI.bug))
-            );
-
-            ILCursor d = new(c);
-            d.GotoNext(MoveType.After,
-                x => x.MatchGetter<Room>(nameof(Room.abstractRoom))
-            );
-            ILLabel label = d.MarkLabel();
-
-            c.EmitDelegate(GetAbstractRoom);
-            c.Emit(OpCodes.Br_S, label);
-
-            static AbstractRoom GetAbstractRoom(Watcher.BigMoth smolMof)
-            {
-                if (!PipeJuking) return smolMof.room.abstractRoom;
-
-                return smolMof.abstractCreature.Room;
-            }
-        }
-        catch (Exception e)
-        {
-            ReleaseLog(LogLevel.Error, $"Failed to apply IL hook to BigMothAI.IUseARelationshipTracker.UpdateDynamicRelationship. Exception: {e}");
+            return smolMof.abstractCreature.Room;
         }
     }
 
     private static void JetFishAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook(ILContext il)
     {
-        try
+        ILCursor c = new(il);
+        c.GotoNext(x => x.MatchLdsfld<CreatureTemplate.Relationship.Type>(nameof(CreatureTemplate.Relationship.Type.SocialDependent)));
+        c.GotoNext(x => x.MatchLdfld<Room>(nameof(Room.defaultWaterLevel)));
+
+        c.GotoPrev(x => x.MatchLdsfld<CreatureTemplate.Relationship.Type>(nameof(CreatureTemplate.Relationship.Type.Antagonizes)));
+
+        ILLabel label = null!;
+        c.GotoNext(MoveType.After, x => x.MatchBrfalse(out label));
+
+        c.Emit(OpCodes.Ldarg_0);
+        c.EmitStaticDelegate(SkipBranch);
+        c.Emit(OpCodes.Brtrue, label);
+
+        static bool SkipBranch(JetFishAI ai)
         {
-            ILCursor c = new(il);
-            c.GotoNext(x => x.MatchLdsfld<CreatureTemplate.Relationship.Type>(nameof(CreatureTemplate.Relationship.Type.SocialDependent)));
-            c.GotoNext(x => x.MatchLdfld<Room>(nameof(Room.defaultWaterLevel)));
+            if (!PipeJuking) return false;
 
-            c.GotoPrev(x => x.MatchLdsfld<CreatureTemplate.Relationship.Type>(nameof(CreatureTemplate.Relationship.Type.Antagonizes)));
-
-            ILLabel label = null!;
-            c.GotoNext(MoveType.After, x => x.MatchBrfalse(out label));
-
-            c.Emit(OpCodes.Ldarg_0);
-            c.EmitDelegate(SkipBranch);
-            c.Emit(OpCodes.Brtrue, label);
-
-            static bool SkipBranch(JetFishAI ai)
-            {
-                if (!PipeJuking) return false;
-
-                return ai.fish.room == null;
-            }
-        }
-        catch (Exception e)
-        {
-            ReleaseLog(LogLevel.Error, $"Failed to apply IL hook to JetFishAI.IUseARelationshipTracker.UpdateDynamicRelationship. Exception: {e}");
+            return ai.fish.room == null;
         }
     }
 
     private static void AnglerAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook(ILContext il)
     {
-        try
+        ILCursor c = new(il);
+        c.GotoNext(
+            x => x.MatchLdcR4(1),
+            x => x.MatchStfld<CreatureTemplate.Relationship>(nameof(CreatureTemplate.Relationship.intensity))
+        );
+
+        c.GotoNext(x => x.MatchStloc(6));
+        c.GotoPrev(MoveType.Before, x => x.MatchLdloc(4));
+        ILLabel label = c.MarkLabel();
+
+        c.GotoPrev(
+            x => x.MatchLdfld<UpdatableAndDeletable>(nameof(UpdatableAndDeletable.room)),
+            x => x.MatchBneUn(out _)
+        );
+
+        c.GotoPrev(MoveType.Before,
+            x => x.MatchLdarg(0),
+            x => x.MatchLdfld<Watcher.AnglerAI>(nameof(Watcher.AnglerAI.fish))
+        );
+
+        c.EmitStaticDelegate(SkipVisualContacCheck);
+        c.Emit(OpCodes.Brtrue, label);
+
+        static bool SkipVisualContacCheck()
         {
-            ILCursor c = new(il);
-            c.GotoNext(
-                x => x.MatchLdcR4(1),
-                x => x.MatchStfld<CreatureTemplate.Relationship>(nameof(CreatureTemplate.Relationship.intensity))
-            );
+            if (!PipeJuking) return false;
 
-            c.GotoNext(x => x.MatchStloc(6));
-            c.GotoPrev(MoveType.Before, x => x.MatchLdloc(4));
-            ILLabel label = c.MarkLabel();
-
-            c.GotoPrev(
-                x => x.MatchLdfld<UpdatableAndDeletable>(nameof(UpdatableAndDeletable.room)),
-                x => x.MatchBneUn(out _)
-            );
-
-            c.GotoPrev(MoveType.Before,
-                x => x.MatchLdarg(0),
-                x => x.MatchLdfld<Watcher.AnglerAI>(nameof(Watcher.AnglerAI.fish))
-            );
-
-            c.EmitDelegate(SkipVisualContacCheck);
-            c.Emit(OpCodes.Brtrue, label);
-
-            static bool SkipVisualContacCheck()
-            {
-                if (!PipeJuking) return false;
-
-                return true;
-            }
-        }
-        catch (Exception e)
-        {
-            ReleaseLog(LogLevel.Error, $"Failed to apply IL hook to AnglerAI.IUseARelationshipTracker.UpdateDynamicRelationship. Exception: {e}");
+            return true;
         }
     }
 
     private static void DaddyAI_Update_ILHook(ILContext il)
     {
-        try
+        ILCursor c = new(il);
+
+        c.GotoNext(x => x.MatchCallvirt<AImap>(nameof(AImap.TileAccessibleToCreature)));
+
+        ILCursor d = new(c);
+        ILLabel label = null!;
+        d.GotoNext(x => x.MatchBrfalse(out label));
+
+        // grabPath[0]
+        c.GotoPrev(
+            x => x.MatchLdfld<Tentacle>(nameof(Tentacle.grabPath)),
+            x => x.MatchLdcI4(0),
+            x => x.MatchCallvirt(typeof(List<RWCustom.IntVector2>).GenericName, "get_Item")
+        );
+
+        c.GotoPrev(MoveType.Before,
+            x => x.MatchLdarg(0),
+            x => x.MatchGetter<DaddyAI>(nameof(DaddyAI.daddy)),
+            x => x.MatchLdfld<UpdatableAndDeletable>(nameof(UpdatableAndDeletable.room))
+        );
+
+        c.Emit(OpCodes.Ldarg_0);
+        c.Emit(OpCodes.Ldloc_S, (byte)9);
+        c.EmitStaticDelegate(GrabPathEmpty);
+        c.Emit(OpCodes.Brtrue, label);
+
+        static bool GrabPathEmpty(DaddyAI ai, int j)
         {
-            ILCursor c = new(il);
-
-            c.GotoNext(x => x.MatchCallvirt<AImap>(nameof(AImap.TileAccessibleToCreature)));
-
-            ILCursor d = new(c);
-            ILLabel label = null!;
-            d.GotoNext(x => x.MatchBrfalse(out label));
-
-            // grabPath[0]
-            c.GotoPrev(
-                x => x.MatchLdfld<Tentacle>(nameof(Tentacle.grabPath)),
-                x => x.MatchLdcI4(0),
-                x => x.MatchCallvirt(typeof(List<RWCustom.IntVector2>).GenericName, "get_Item")
-            );
-
-            c.GotoPrev(MoveType.Before,
-                x => x.MatchLdarg(0),
-                x => x.MatchGetter<DaddyAI>(nameof(DaddyAI.daddy)),
-                x => x.MatchLdfld<UpdatableAndDeletable>(nameof(UpdatableAndDeletable.room))
-            );
-
-            c.Emit(OpCodes.Ldarg_0);
-            c.Emit(OpCodes.Ldloc_S, (byte)9);
-            c.EmitDelegate(GrabPathEmpty);
-            c.Emit(OpCodes.Brtrue, label);
-
-            static bool GrabPathEmpty(DaddyAI ai, int j)
-            {
-                return ai.daddy.tentacles[j].grabPath.Count == 0;
-            }
-        }
-        catch (Exception e)
-        {
-            ReleaseLog(LogLevel.Error, $"Failed to apply IL hook to DaddyAI.Update. Exception: {e}");
+            return ai.daddy.tentacles[j].grabPath.Count == 0;
         }
     }
 
     private static void DropBugAI_IUseARelationshipTracker_UpdateDynamicRelationship_ILHook(ILContext il)
     {
-        try
+        ILCursor c = new(il);
+
+        c.GotoNext(x => x.MatchLdsfld<Watcher.WatcherEnums.CreatureTemplateType>(nameof(Watcher.WatcherEnums.CreatureTemplateType.Barnacle)));
+
+        c.GotoNext(MoveType.Before,
+            x => x.MatchGetter<AbstractCreature>(nameof(AbstractCreature.realizedCreature)),
+            x => x.MatchGetter<Creature>(nameof(Creature.dead))
+        );
+        c.MoveAfterLabels();
+
+        ILCursor d = new(c);
+        d.GotoNext(MoveType.After,
+            x => x.MatchGetter<Creature>(nameof(Creature.dead))
+        );
+        ILLabel label = d.MarkLabel();
+
+        c.EmitStaticDelegate(GetDead);
+        c.Emit(OpCodes.Br_S, label);
+
+        static bool GetDead(AbstractCreature barnacle)
         {
-            ILCursor c = new(il);
+            if (barnacle.realizedCreature != null) return barnacle.realizedCreature.dead;
 
-            c.GotoNext(x => x.MatchLdsfld<Watcher.WatcherEnums.CreatureTemplateType>(nameof(Watcher.WatcherEnums.CreatureTemplateType.Barnacle)));
-
-            c.GotoNext(MoveType.Before,
-                x => x.MatchGetter<AbstractCreature>(nameof(AbstractCreature.realizedCreature)),
-                x => x.MatchGetter<Creature>(nameof(Creature.dead))
-            );
-            c.MoveAfterLabels();
-
-            ILCursor d = new(c);
-            d.GotoNext(MoveType.After,
-                x => x.MatchGetter<Creature>(nameof(Creature.dead))
-            );
-            ILLabel label = d.MarkLabel();
-
-            c.EmitDelegate(GetDead);
-            c.Emit(OpCodes.Br_S, label);
-
-            static bool GetDead(AbstractCreature barnacle)
-            {
-                if (barnacle.realizedCreature != null) return barnacle.realizedCreature.dead;
-
-                return barnacle.state.dead;
-            }
-        }
-        catch (Exception e)
-        {
-            ReleaseLog(LogLevel.Error, $"Failed to apply IL hook to DropBugAI.IUseARelationshipTracker.UpdateDynamicRelationship. Exception: {e}");
+            return barnacle.state.dead;
         }
     }
 
     private static void EggBugAI_CreatureSpotted_ILHook(ILContext il)
     {
-        try
+        ILCursor c = new(il);
+
+        c.GotoNext(x => x.MatchLdsfld<CreatureTemplate.Relationship.Type>(nameof(CreatureTemplate.Relationship.Type.Afraid)));
+
+        c.GotoPrev(MoveType.Before,
+            x => x.MatchLdarg(0),
+            x => x.MatchLdfld<EggBugAI>(nameof(EggBugAI.bug)),
+            x => x.MatchGetter<Creature>(nameof(Creature.safariControlled))
+        );
+        c.MoveAfterLabels();
+
+        ILCursor d = new(c);
+        ILLabel label = null!;
+        d.GotoNext(x => x.MatchBrfalse(out label));
+
+        c.EmitStaticDelegate(SkipTryJump);
+        c.Emit(OpCodes.Brtrue, label);
+
+        static bool SkipTryJump()
         {
-            ILCursor c = new(il);
+            return PipeJuking;
+        }
 
-            c.GotoNext(x => x.MatchLdsfld<CreatureTemplate.Relationship.Type>(nameof(CreatureTemplate.Relationship.Type.Afraid)));
+        c.GotoNext(x => x.MatchCallvirt<EggBug>(nameof(EggBug.Suprise)));
 
-            c.GotoPrev(MoveType.Before,
-                x => x.MatchLdarg(0),
-                x => x.MatchLdfld<EggBugAI>(nameof(EggBugAI.bug)),
-                x => x.MatchGetter<Creature>(nameof(Creature.safariControlled))
-            );
-            c.MoveAfterLabels();
+        ILLabel label2 = null!;
+        c.GotoPrev(MoveType.After,
+            x => x.MatchBleUn(out label2)
+        );
 
-            ILCursor d = new(c);
-            ILLabel label = null!;
-            d.GotoNext(x => x.MatchBrfalse(out label));
+        c.Emit(OpCodes.Ldarg_0);
+        c.EmitStaticDelegate(ReplaceSurprise);
+        c.Emit(OpCodes.Brtrue, label2);
 
-            c.EmitDelegate(SkipTryJump);
-            c.Emit(OpCodes.Brtrue, label);
+        static bool ReplaceSurprise(EggBugAI ai)
+        {
+            if (!PipeJuking) return false;
 
-            static bool SkipTryJump()
+            if (!ai.bug.Consious)
             {
-                return PipeJuking;
-            }
-
-            c.GotoNext(x => x.MatchCallvirt<EggBug>(nameof(EggBug.Suprise)));
-
-            ILLabel label2 = null!;
-            c.GotoPrev(MoveType.After,
-                x => x.MatchBleUn(out label2)
-            );
-
-            c.Emit(OpCodes.Ldarg_0);
-            c.EmitDelegate(ReplaceSurprise);
-            c.Emit(OpCodes.Brtrue, label2);
-
-            static bool ReplaceSurprise(EggBugAI ai)
-            {
-                if (!PipeJuking) return false;
-
-                if (!ai.bug.Consious)
-                {
-                    return true;
-                }
-                ai.bug.shake = Math.Max(ai.bug.shake, UnityEngine.Random.Range(5, 15));
-                ai.fear = Custom.LerpAndTick(ai.fear, 1f, 0.3f, 1f / 7f);
                 return true;
             }
+            ai.bug.shake = Math.Max(ai.bug.shake, UnityEngine.Random.Range(5, 15));
+            ai.fear = Custom.LerpAndTick(ai.fear, 1f, 0.3f, 1f / 7f);
+            return true;
         }
-        catch (Exception e)
-        {
-            ReleaseLog(LogLevel.Error, $"Failed to apply IL hook to EggBugAI.CreatureSpotted. Exception: {e}");
-        }
-    }
-
-    extension(Instruction instr)
-    {
-        public bool MatchGetter<T>(string propertyName)
-        {
-            return instr.MatchCallOrCallvirt<T>("get_" + propertyName);
-        }
-    }
-
-    extension(Type type)
-    {
-        public string GenericName => type.ToString().Replace("[", "<").Replace("]", ">").Replace("+", "/");
     }
 }

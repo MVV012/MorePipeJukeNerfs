@@ -4,7 +4,7 @@ namespace MorePipeJukeNerfs;
 
 public class ShortcutUsesTracker
 {
-    private Dictionary<IShortcut, ShortcutUsesInfo> _shortcutUses = [with(ShortcutComparer.SameShortcut)];
+    private readonly Dictionary<IShortcut, ShortcutUsesInfo> _shortcutUses = [with(ShortcutComparer.SameShortcut)];
 
     public class ShortcutUsesInfo {
         public int Uses { get; set; } = 0;
@@ -46,7 +46,7 @@ public class ShortcutUsesTracker
 
     public void ClearInfo()
     {
-        _shortcutUses = [with(ShortcutComparer.SameShortcut)];
+        _shortcutUses.Clear();
     }
 }
 

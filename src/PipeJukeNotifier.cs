@@ -2,14 +2,14 @@ using MorePipeJukeNerfs.Shortcuts;
 
 namespace MorePipeJukeNerfs;
 
-internal class PipeJukeNotifier
+internal static class PipeJukeNotifier
 {
     public static void OnEnable()
     {
         ShortcutPairTracking.FirstCreatureExited += FirstCreatureExited;
         ShortcutPairTracking.SecondCreatureExited += SecondCreatureExited;
 
-        Plugin.OnDisableEvent += OnDisable;
+        Plugin.RegisterOnDisable(OnDisable);
     }
 
     public static void OnDisable()
@@ -20,7 +20,7 @@ internal class PipeJukeNotifier
 
     private static void FirstCreatureExited(AbstractCreature cur, AbstractCreature other, IShortcut shortcut)
     {
-        DebugLogInfo($"First exited: {cur} (other: {other})");
+        LogDebug($"First exited: {cur} (other: {other})");
 
         OnPipeJuke(cur, other, shortcut.StartRoom, shortcut.StartCoord, pause: true, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
         OnPipeJuke(other, cur, shortcut.DestRoom, shortcut.DestCoord, pause: false, setForbiddenRoomExit: shortcut.Type == ShortcutData.Type.RoomExit);
@@ -28,7 +28,7 @@ internal class PipeJukeNotifier
 
     private static void SecondCreatureExited(AbstractCreature cur, AbstractCreature other, IShortcut shortcut)
     {
-        DebugLogInfo($"Second exited: {cur} (other: {other})");
+        LogDebug($"Second exited: {cur} (other: {other})");
 
         if (other.TryGetRepresentation(cur, out var rep))
         {

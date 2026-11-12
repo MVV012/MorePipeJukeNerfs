@@ -2,24 +2,23 @@ using LogUtils.Diagnostics;
 using LogUtils.Diagnostics.Tests;
 using LogUtils.Enums;
 using LogUtils.Events;
-using RWCustom;
 
 namespace MorePipeJukeNerfs.Debug.Tests;
 
-public enum ShortcutTestType
+internal enum ShortcutTestType
 {
     NormalShortcut,
     RealizedToRealized,
     AbstractToRealized
 }
 
-public enum ShortcutTestLocationGroup
+internal enum ShortcutTestLocationGroup
 {
     CC,
     MPJNTST
 }
 
-public enum ShortcutTestResult
+internal enum ShortcutTestResult
 {
     Passed = 0,
     PassedWithException = 1,
@@ -198,7 +197,7 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
         }
         catch(Exception e)
         {
-            Log.LogError($"Exception during testing: {e}");
+            LogError($"Exception during testing: {e}");
             this.Fail("Exception during testing");
             SetupFailed = true;
             return;
@@ -214,7 +213,7 @@ internal abstract class ShortcutTestBase : TestCase, ITestable
             if (errorLogged)
             {
                 CatchedException = true;
-                Log.LogDebug($"^ {Name}");
+                LogDebug($"^ {Name}");
             }
             LogRequestEvents.OnSubmit -= logRequestHandler;
         }

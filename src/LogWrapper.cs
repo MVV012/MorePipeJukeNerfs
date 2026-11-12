@@ -9,22 +9,13 @@ internal static class LogWrapper
 {
     internal static class Global
     {
-        public static void ReleaseLog(LogLevel level, object data)
-        {
-            Log(level, data);
-        }
-
         [Conditional("DEBUG")]
-        public static void DebugLog(LogLevel level, object data)
-        {
-            Log(level, data);
-        }
-
-        [Conditional("DEBUG")]
-        public static void DebugLogInfo(object data)
-        {
-            Log(LogLevel.Info, data);
-        }
+        public static void LogDebug(object data) => LogImpl(LogLevel.Debug, data);
+        public static void LogInfo(object data) => LogImpl(LogLevel.Info, data);
+        public static void LogMessage(object data) => LogImpl(LogLevel.Message, data);
+        public static void LogWarning(object data) => LogBothImpl(LogLevel.Warning, data);
+        public static void LogError(object data) => LogBothImpl(LogLevel.Error, data);
+        public static void LogFatal(object data) => LogBothImpl(LogLevel.Fatal, data);
     }
 
     public static bool LogUtilsUsed = false;
@@ -55,7 +46,7 @@ internal static class LogWrapper
 #endif
     }
 
-    public static void Log(LogLevel level, object data)
+    public static void LogImpl(LogLevel level, object data)
     {
 #if DEBUG
         if (LogUtilsUsed)
@@ -67,12 +58,23 @@ internal static class LogWrapper
         BepInExLogger.Log(level, data);
     }
 
+    public static void LogBothImpl(LogLevel level, object data)
+    {
+#if DEBUG
+        if (LogUtilsUsed)
+        {
+            LogUtilsLoggerLog(level, data);
+        }
+#endif
+        BepInExLogger.Log(level, data);
+    }
+
 #if DEBUG
     private static void LogUtilsLoggerOnEnable() => Debug.LogUtilsLogger.OnEnable();
     private static void LogUtilsLoggerOnDisable() => Debug.LogUtilsLogger.OnDisable();
     private static void LogUtilsLoggerLog(LogLevel level, object data)
     {
-        if (Debug.DebugImGUIWindow.DontLogDebugInfo && level == LogLevel.Info || level == LogLevel.Debug)
+        if (Plugin.DebugWindowEnabled && Debug.DebugImGUIWindow.DontLogDebugInfo && (level == LogLevel.Info || level == LogLevel.Debug))
         {
             return;
         }

@@ -22,6 +22,9 @@
     <Reference Include="../lib/**/*.dll" Exclude="../lib/debug/**/*.dll;../lib/gen/**/*.dll">
       <Private>false</Private>
     </Reference>
+    <Reference Include="../lib/debug/**/*.dll" Condition="'$(Configuration)' == 'Debug'">
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -33,17 +36,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <Analyzer Include="../lib/gen/RWGenerators.dll"/>
+    <Analyzer Include="../lib/gen/RWGenerators.dll" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' != 'Debug'">
     <Compile Remove="Debug/**" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <Reference Include="../lib/debug/**/*.dll">
-      <Private>false</Private>
-    </Reference>
   </ItemGroup>
 
   <UsingTask TaskName="UpdateModinfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
@@ -56,25 +53,25 @@
 <![CDATA[
 if (!string.IsNullOrEmpty("$(UpdateModinfoAtPath)"))
 {
-  if (!File.Exists("$(UpdateModinfoAtPath)"))
-  {
-    Log.LogError("File at $(UpdateModinfoAtPath) doesn't exist");
-  }
-  else
-  {
-    string modinfo = File.ReadAllText("$(UpdateModinfoAtPath)");
-    string res = modinfo;
-    res = Regex.Replace(res, @"(?<=""id"": *"")(.*)(?="")", "$(AssemblyName)");
-    res = Regex.Replace(res, @"(?<=""name"": *"")(.*)(?="")", "$(AssemblyTitle)");
-    res = Regex.Replace(res, @"(?<=""version"": *"")(.*)(?="")", "$(Version)");
-
-    if (res != modinfo) {
-        File.WriteAllText("$(UpdateModinfoAtPath)", res);
-        Log.LogWarning("Updated information in $(UpdateModinfoAtPath)");
-        Log.LogWarning("Before: " + modinfo);
-        Log.LogWarning("After: " + res);
+    if (!File.Exists("$(UpdateModinfoAtPath)"))
+    {
+        Log.LogError("File at $(UpdateModinfoAtPath) doesn't exist");
     }
-  }
+    else
+    {
+        string modinfo = File.ReadAllText("$(UpdateModinfoAtPath)");
+        string res = modinfo;
+        res = Regex.Replace(res, @"(?<=""id"": *"")(.*)(?="")", "$(AssemblyName)");
+        res = Regex.Replace(res, @"(?<=""name"": *"")(.*)(?="")", "$(AssemblyTitle)");
+        res = Regex.Replace(res, @"(?<=""version"": *"")(.*)(?="")", "$(Version)");
+
+        if (res != modinfo) {
+            File.WriteAllText("$(UpdateModinfoAtPath)", res);
+            Log.LogWarning("Updated information in $(UpdateModinfoAtPath)");
+            Log.LogWarning("Before: " + modinfo);
+            Log.LogWarning("After: " + res);
+        }
+    }
 }
 ]]>
       </Code>
@@ -92,10 +89,10 @@ if (!string.IsNullOrEmpty("$(UpdateModinfoAtPath)"))
     </PropertyGroup>
 
     <Exec Command="7z a -t7z -mx=7 -bso0 -bsp0 $(BuildOutputDir)/$(ArchiveName).7z ../mod/*" ContinueOnError="WarnAndContinue">
-      <Output TaskParameter="ExitCode" PropertyName="SevenZipExitCode"/>
+      <Output TaskParameter="ExitCode" PropertyName="SevenZipExitCode" />
     </Exec>
-    <Exec Command="7z a -tzip -mx=7 -bso0 -bsp0 $(BuildOutputDir)/$(ArchiveName).zip ../mod/*" Condition="$(SevenZipExitCode)=='0'"/>
+    <Exec Command="7z a -tzip -mx=7 -bso0 -bsp0 $(BuildOutputDir)/$(ArchiveName).zip ../mod/*" Condition="$(SevenZipExitCode)=='0'" />
 
-    <ZipDirectory DestinationFile="$(BuildOutputDir)/$(ArchiveName).zip" SourceDirectory="../mod/" Overwrite="true" Condition="$(SevenZipExitCode)!='0'"/>
+    <ZipDirectory DestinationFile="$(BuildOutputDir)/$(ArchiveName).zip" SourceDirectory="../mod/" Overwrite="true" Condition="$(SevenZipExitCode)!='0'" />
   </Target>
 </Project>

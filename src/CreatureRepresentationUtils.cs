@@ -1,4 +1,3 @@
-using MorePipeJukeNerfs.Shortcuts;
 using RWCustom;
 using UnityEngine;
 
@@ -87,11 +86,11 @@ public static class CreatureRepresentationUtils
 
             if (room.realizedRoom == null)
             {
-                DebugLogInfo($"MoveToShortcutEntrance {coord}: Room {room.name} is NOT realized");
+                LogDebug($"MoveToShortcutEntrance {coord}: Room {room.name} is NOT realized");
             }
             else if (!room.realizedRoom.shortCutsReady)
             {
-                DebugLogInfo($"MoveToShortcutEntrance {coord}: Room {room.name} shortcuts are NOT ready");
+                LogDebug($"MoveToShortcutEntrance {coord}: Room {room.name} shortcuts are NOT ready");
             }
         }
 
