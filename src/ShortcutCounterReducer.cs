@@ -11,6 +11,7 @@ public static partial class ShortcutCounterReducer
     public static void ApplyHooks()
     {
         On.Player.Update += Player_Update;
+        On.Player.Die += Player_Die;
         On.ShortcutHandler.SpitOutCreature += ShortcutHandler_SpitOutCreature;
     }
 
@@ -18,6 +19,12 @@ public static partial class ShortcutCounterReducer
     {
         orig(self, eu);
         self.ShortcutUsesTracker.Update();
+    }
+
+    private static void Player_Die(On.Player.orig_Die orig, Player self)
+    {
+        orig(self);
+        self.ShortcutUsesTracker.ClearInfo();
     }
 
     private static void ShortcutHandler_SpitOutCreature(On.ShortcutHandler.orig_SpitOutCreature orig, ShortcutHandler self, ShortcutHandler.ShortCutVessel vessel)

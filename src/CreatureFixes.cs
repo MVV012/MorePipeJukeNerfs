@@ -56,7 +56,7 @@ public static class CreatureFixes
 
     private static float CentipedeAI_OverChasm(On.CentipedeAI.orig_OverChasm orig, CentipedeAI self, RWCustom.IntVector2 testPos)
     {
-        if (!PipeJuking) orig(self, testPos);
+        if (!PipeJuking) return orig(self, testPos);
 
         if (self.centipede.room == null)
         {
@@ -68,7 +68,7 @@ public static class CreatureFixes
 
     private static CreatureTemplate.Relationship NeedleWormAI_UncomfortableToAfraidRelationshipModifier(On.NeedleWormAI.orig_UncomfortableToAfraidRelationshipModifier orig, NeedleWormAI self, RelationshipTracker.DynamicRelationship dRel, CreatureTemplate.Relationship currRel)
     {
-        if (!PipeJuking) orig(self, dRel, currRel);
+        if (!PipeJuking) return orig(self, dRel, currRel);
 
         if (self.worm.room?.aimap == null)
         {
