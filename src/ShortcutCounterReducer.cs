@@ -5,7 +5,7 @@ using RWGenerators;
 namespace MorePipeJukeNerfs;
 
 // Players and abstract rooms are unlikely to be removed, these will be cleared on WorldLoaded and RWGameShutDown
-[AttachField<Player, ShortcutUsesTracker>("ShortcutUsesTracker", Impl = AttachFieldImpl.StrongRef)]
+[AttachField<Player, ShortcutUsesTracker>("ShortcutUsesTracker", Impl = AttachFieldImpl.StrongRef, AddRemoveValue = true)]
 public static partial class ShortcutCounterReducer
 {
     public static void ApplyHooks()
@@ -24,7 +24,7 @@ public static partial class ShortcutCounterReducer
     private static void Player_Die(On.Player.orig_Die orig, Player self)
     {
         orig(self);
-        self.ShortcutUsesTracker.ClearInfo();
+        self.RemoveShortcutUsesTracker();
     }
 
     private static void ShortcutHandler_SpitOutCreature(On.ShortcutHandler.orig_SpitOutCreature orig, ShortcutHandler self, ShortcutHandler.ShortCutVessel vessel)
